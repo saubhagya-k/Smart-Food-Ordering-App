@@ -5,13 +5,13 @@ import { Link } from "react-router-dom";
 
 
 
-export default function RestaurantMenu({setCartCount} ){
+export default function RestaurantMenu({setCartCount,cartItems,setCartItems} ){
    
     let {id} = useParams();
     console.log(id);
 
     const [RestData, setRestData] = useState([]);
-    const [selected,setSelected] = useState([])
+    const [selected,setSelected] = useState(null)
 
     useEffect(()=>{
     
@@ -48,7 +48,7 @@ export default function RestaurantMenu({setCartCount} ){
       </div>
         <div className="w-[80%] mx-auto mt-20">
           {
-            RestData.map((menuItems)=><MenuCard key={menuItems?.card?.card?.title} menuItems={menuItems?.card?.card } foodselected={selected} setCartCount={setCartCount} ></MenuCard>)
+            RestData.map((menuItems)=><MenuCard key={menuItems?.card?.card?.title} menuItems={menuItems?.card?.card } foodselected={selected} setCartCount={setCartCount}  cartItems={cartItems} setCartItems={setCartItems} ></MenuCard>)
           }
         </div>
         </div>

@@ -1,12 +1,34 @@
-
+import React from 'react'
 import {useState} from 'react';
-export default function RestInfo({restData,setCartCount}){
+export default function RestInfo({restData,setCartCount,cartItems,setCartItems}){
 
   const [count,setCount] = useState(0);
 
+  
+
   const adding=()=>{
     setCount(1);
-     setCartCount(prev => prev + 1);
+    setCartCount(prev => prev + 1);
+
+    setCartItems(prev => [
+   ...prev,
+   {
+     id: restData.id,
+     name: restData.name,
+      qty: 1,
+     description: restData.description,
+     image: restData.imageId 
+      ? "https://media-assets.swiggy.com/swiggy/image/upload/" + restData.imageId
+      : "",
+
+     price: ("defaultPrice" in restData
+       ? restData.defaultPrice/100
+       : restData.price/100)
+
+       
+   }
+ ])
+    
 
 
 
@@ -14,6 +36,13 @@ export default function RestInfo({restData,setCartCount}){
   const increment=()=>{
     setCount(count+1);
     setCartCount(prev => prev + 1);
+    setCartItems(prev =>
+   prev.map(item =>
+     item.id === restData.id
+       ? {...item, qty: item.qty + 1}
+       : item
+   )
+ )
 
 
   }
@@ -21,6 +50,15 @@ export default function RestInfo({restData,setCartCount}){
   const decrement=()=>{
     setCount(count-1);
     setCartCount(prev => prev - 1);
+     setCartItems(prev =>
+   prev
+     .map(item =>
+       item.id === restData.id
+         ? {...item, qty: item.qty - 1}
+         : item
+     )
+     .filter(item => item.qty > 0)
+ )
 
   }
 
@@ -40,7 +78,7 @@ export default function RestInfo({restData,setCartCount}){
             </p>    
           </div>
           <div className="w-[20%] relative">
-            <img className="w-full h-36 object-cover rounded-3xl" src={"https://media-assets.swiggy.com/swiggy/image/upload/"+restData.imageId}></img>
+            <img className="w-full h-36 object-cover rounded-3xl" src={restData.imageId ? "https://media-assets.swiggy.com/swiggy/image/upload/" + restData.imageId : ""}></img>
             {
               (count == 0)?(<button className="absolute bottom-1 left-20 rounded-xl text-2xl text-green-600 px-6 py-2 shadow-md border border-white bg-white" onClick={adding}>ADD</button>):(
                 <div className="absolute bottom-1 left-20 rounded-xl text-2xl text-green-600 px-6 py-2 shadow-md border border-white bg-white ">
@@ -51,6 +89,8 @@ export default function RestInfo({restData,setCartCount}){
 
               )
             }
+
+           
           </div>
         </div>
         <hr className="mb-6 mt-2"></hr>

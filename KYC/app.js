@@ -11,7 +11,7 @@ app.use(morgan('dev'));
 
 app.use(
   cors({
-    origin: "http://localhost:1234",
+    origin: "http://localhost:3001",
     credentials: true,
   })
 );
@@ -37,6 +37,7 @@ connecttoDb();
 
 const confirmRoutes = require("./routes/confirm-routes");
 const indexRoutes = require("./routes/index-routes");
+const reviewRoutes = require('./routes/reviews-routes');
 
 
 
@@ -50,6 +51,7 @@ app.use(express.urlencoded({extended:true}));
 
 app.use("/", confirmRoutes);
 app.use("/", indexRoutes);
+app.use('/api', reviewRoutes);
 
 
 

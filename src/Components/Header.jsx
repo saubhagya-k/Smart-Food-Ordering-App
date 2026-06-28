@@ -10,11 +10,12 @@ function Header({user, setUser, setShowLogin}) {
   return (
     <div>
       
-        <header className="bg-[#ff5200] font-serif">
+        <header className="bg-[#dc2626] font-serif">
            <div className=" text-base flex  justify-between container mx-auto py-8"> 
-            <img className=" h-12 w-40  m-3" src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/portal/static-assets/images/swiggy_logo_white.png"/>
+            {/* <img className=" h-12 w-40  m-3" src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/portal/static-assets/images/swiggy_logo_white.png"/> */}
+            <h1 className="">EAT STACK</h1>
             <div className=" flex gap-10 my-3 items-center">
-              <a target="_bank" href="https://www.swiggy.com/corporate/" className="text-[#ffffff]  ">Swiggy Corporate</a>
+              <a target="_bank" href="https://www.swiggy.com/corporate/" className="text-[#ffffff]  ">Eat Stack Corporate</a>
               <a target="_bank" href="https://partner.swiggy.com/login#/swiggy" className="text-[#ffffff]   ">Partnear with us</a>
               <a target="_bank" href="https://www.swiggy.com/corporate/" className="text-[#ffffff] border-1 border-white rounded-2xl p-3 ">Get The App</a>
 

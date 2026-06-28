@@ -2,7 +2,7 @@ import { useState } from "react"
 import RestInfo from "./RestInfo"
 
 
-export default function MenuCard({menuItems,foodselected,setCartCount }){
+export default function MenuCard({menuItems,foodselected,setCartCount,cartItems,setCartItems }){
 
     const [isOpen, setIsOpen] = useState(true);
     
@@ -41,7 +41,7 @@ export default function MenuCard({menuItems,foodselected,setCartCount }){
             </div>
             <div>
                 {
-                    menuItems?.itemCards?.filter( (food) => food?.card?.info?.isVeg === 1).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info}></RestInfo>)
+                    menuItems?.itemCards?.filter( (food) => food?.card?.info?.isVeg === 1).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info}  cartItems={cartItems} setCartItems={setCartItems}></RestInfo>)
                 }
             </div>
             <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
@@ -58,7 +58,7 @@ export default function MenuCard({menuItems,foodselected,setCartCount }){
             </div>
             <div>
                 {
-                    menuItems?.itemCards?.filter( (food) => !(food?.card?.info?.isVeg) ).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info}></RestInfo>)
+                    menuItems?.itemCards?.filter( (food) => !(food?.card?.info?.isVeg) ).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info}  cartItems={cartItems} setCartItems={setCartItems} ></RestInfo>)
                 }
             </div>
             <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
@@ -76,7 +76,7 @@ export default function MenuCard({menuItems,foodselected,setCartCount }){
             </div>
             <div>
                 {
-                    menuItems?.itemCards?.map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount} ></RestInfo>)
+                    menuItems?.itemCards?.map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount}  cartItems={cartItems} setCartItems={setCartItems}></RestInfo>)
                 }
             </div>
             <div className="h-5 bg-gray-200 mt-2 mb-2"></div>

@@ -9,6 +9,12 @@ import SearchFood from "./Components/SearchFood";
 import LoginModal from "./Components/LoginModal"
 import Profile from "./Components/Profile"
 import SecondHeader from "./Components/SecondHeader";
+import CartPopup from "./Components/CartPopup"
+import Checkout from "./Components/Checkout"
+import PaymentPage from "./Components/PaymentPage";
+
+import OrderSuccess from "./Components/OrderSuccess";
+
 
 
 
@@ -17,6 +23,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  console.log(cartItems)
 
 
   useEffect(() => {
@@ -33,13 +41,13 @@ function App() {
       }
 
       const data = await res.json();
-      setUser(data.user);       // 👈 IMPORTANT
+      setUser(data.user);       
       setShowLogin(false);
     } catch {
       setShowLogin(true);
       setUser(null);
     }
-  }, 300);
+  }, 10000);
 
   return () => clearTimeout(timer);
 }, []);
@@ -47,6 +55,8 @@ function App() {
 
 
   return (
+
+    <>
 
     
     <BrowserRouter>
@@ -73,7 +83,7 @@ function App() {
         <Route element={<SecondHeader cartCount = {cartCount}/>}>
         <Route path="/restaurent" element={<Restaurent/>} />
        
-        <Route path="/city/chennai/:id" element={<RestaurentMenu setCartCount={setCartCount} />} />
+        <Route path="/city/chennai/:id" element={<RestaurentMenu setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems} />} />
         <Route path="/city/chennai/:id/search" element={<SearchFood />} />
 
         </Route>
@@ -82,10 +92,37 @@ function App() {
          <Route path="/profile" element={<Profile user={user}
         setUser={setUser}
         setShowLogin={setShowLogin}/>}/>
+
+
+        <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
+
+        <Route path="/payment" element={<PaymentPage />} />
+
+       <Route path="/order-success" element={<OrderSuccess />} />
         
       </Routes>
+      {/* {cartItems.length > 0 && ( */}
+      
+  <CartPopup cartItems={cartItems} />
+
+  
+  
+
+{/* )} */}
     </BrowserRouter>
+
+
+    
+
+
+
+    </>
+
+    
+    
   );
+  
 }
+
 
 export default App;
