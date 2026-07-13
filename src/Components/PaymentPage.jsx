@@ -4,7 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-tion.state || { cartItems: [], grandTotal: 0 };
+
+  //  CRUCIAL FIX: Destructure the state values safely so the entire file can read them
+  const { cartItems, grandTotal } = location.state || { cartItems: [], grandTotal: 0 };
   
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -209,30 +211,23 @@ tion.state || { cartItems: [], grandTotal: 0 };
                   </label>
                   <input
                     type="text"
-                    placeholder="username@okhdfcbank"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="user@okhdfcbank"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-800">📱 Scan QR code with any UPI app</p>
                 </div>
               </div>
             )}
 
-            {/* NetBanking Form */}
+            {/* NetBanking View */}
             {paymentMethod === 'netbanking' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Bank
-                  </label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                    <option>State Bank of India</option>
-                    <option>HDFC Bank</option>
-                    <option>ICICI Bank</option>
-                    <option>Axis Bank</option>
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Select Bank</label>
+                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                  <option>SBI</option>
+                  <option>HDFC Bank</option>
+                  <option>ICICI Bank</option>
+                  <option>Axis Bank</option>
+                </select>
               </div>
             )}
 
@@ -240,25 +235,11 @@ tion.state || { cartItems: [], grandTotal: 0 };
             <button
               onClick={handlePayment}
               disabled={isProcessing}
-              className={`w-full mt-8 bg-gradient-to-r from-green-500 to-green-700 text-white py-4 rounded-xl font-bold text-lg transition-all transform ${
-                isProcessing 
-                  ? 'opacity-70 cursor-not-allowed' 
-                  : 'hover:scale-105 hover:shadow-lg'
-              }`}
+              className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md transform active:scale-95 disabled:bg-gray-400 disabled:scale-100"
             >
-              {isProcessing ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Processing Payment...
-                </div>
-              ) : (
-                `Pay ₹${grandTotal}`
-              )}
+              {isProcessing ? 'Processing Payment...' : `Pay ₹${grandTotal}`}
             </button>
 
-            <p className="text-xs text-gray-400 text-center mt-4">
-              🔒 Demo Mode - No real payment will be processed
-            </p>
           </div>
         </div>
       </div>
