@@ -1,6 +1,6 @@
 export const  mockPagination = [
   {
-    page: 1,
+    page: 0,
   
     
                                 "restaurants": [
@@ -1266,7 +1266,7 @@ export const  mockPagination = [
                          },
     
   {
-    page: 2,
+    page: 1,
     
                                 "restaurants": [
                                     {
@@ -2619,7 +2619,7 @@ export const  mockPagination = [
    
   
   {
-    page: 3,
+    page: 2,
     
 
                                 "restaurants": [
@@ -3915,7 +3915,7 @@ export const  mockPagination = [
   },
   ,
   {
-    page: 4,
+    page: 3,
     
                                 "restaurants": [
                                     {

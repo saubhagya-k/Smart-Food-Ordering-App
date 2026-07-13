@@ -8,12 +8,11 @@ const { body, validationResult } = require("express-validator");
 const authMiddleware = require("../middleware/auth");
 
 /* ================= LOGIN ================= */
-router.post(
-  "/confirm",
-  body("email").isEmail(),
-  body("password").isLength({ min: 5 }),
+router.post("/confirm",body("email").isEmail(),
+body("password").isLength({ min: 5 }),
   async (req, res) => {
     const errors = validationResult(req);
+    
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
@@ -41,7 +40,9 @@ router.post(
 
     res.cookie("token", token, {
       httpOnly: true,
+      secure: false, 
       sameSite: "lax",
+        maxAge: 3600000*24*7, 
     });
 
     res.json({ message: "Login success" });

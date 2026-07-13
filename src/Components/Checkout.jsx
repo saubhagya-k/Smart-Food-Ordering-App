@@ -146,8 +146,8 @@ export default function Checkout({ cartItems }) {
                   Your cart is empty. Add some items to checkout.
                 </div>
               ) : (
-                cartItems.map((item) => (
-                  <div key={item.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                cartItems.map((item, index) => ( // 👈 FIX: using index as key
+                  <div key={index} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-4">
                       {item.image && (
                         <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">

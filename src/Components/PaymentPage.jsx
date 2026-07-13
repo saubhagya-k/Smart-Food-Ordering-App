@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { cartItems, grandTotal } = location.state || { cartItems: [], grandTotal: 0 };
+tion.state || { cartItems: [], grandTotal: 0 };
   
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);

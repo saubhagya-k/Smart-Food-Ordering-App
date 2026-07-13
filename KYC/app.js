@@ -32,6 +32,21 @@ const connecttoDb = require("./config/db")
 
 connecttoDb();
 
+//proxi
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+app.use(
+  createProxyMiddleware({
+    pathFilter: '/api/swiggy',         // intercepts URLs that start with /api/swiggy
+    target: 'https://www.swiggy.com',
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/swiggy': '',             // removes the /api/swiggy prefix before forwarding
+    },
+    logger: console,                  // optional, helps debugging
+  })
+);
+
 
 
 
