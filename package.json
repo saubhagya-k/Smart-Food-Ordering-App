@@ -2,7 +2,10 @@
   "name": "swiggy",
   "version": "1.0.0",
   "proxy": "http://localhost:8080",
-  "scripts": {},
+  "scripts": {
+     "start": "parcel public/index.html",
+     "build": "parcel build public/index.html"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
