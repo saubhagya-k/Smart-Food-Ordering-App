@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from './../../Utils/api';
 
 const RestaurantReviews = ({ restaurantId }) => {
   const [reviews, setReviews] = useState([]);
@@ -11,7 +12,7 @@ const RestaurantReviews = ({ restaurantId }) => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/reviews/restaurant/${restaurantId}`);
+      const response = await fetch(`${API_URL}/api/reviews/restaurant/${restaurantId}`);
       const data = await response.json();
       
       if (data.success) {

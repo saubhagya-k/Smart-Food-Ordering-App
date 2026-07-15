@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_URL } from './../../Utils/api'; 
 
 const Review = () => {
   const [rating, setRating] = useState(0)
@@ -17,12 +18,12 @@ const Review = () => {
     setError('')
     
     try {
-      const response = await fetch('http://localhost:8080/api/reviews', {
+      const response = await fetch(`${API_URL}/api/reviews`,  {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Sends session cookie - backend gets user from this
+        credentials: 'include', 
         body: JSON.stringify({
           rating: rating,
           reviewText: reviewText
@@ -80,7 +81,7 @@ const Review = () => {
         ))}
       </div>
 
-      {/* Text input */}
+     
       <textarea
         value={reviewText}
         onChange={(e) => setReviewText(e.target.value)}
@@ -90,7 +91,7 @@ const Review = () => {
         disabled={isLoading}
       />
 
-      {/* Submit button */}
+     
       <button
         onClick={handleSubmit}
         disabled={rating === 0 || isLoading}

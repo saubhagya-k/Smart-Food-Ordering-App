@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const FASTAPI_URL = process.env.REACT_APP_FASTAPI_URL || 'http://localhost:8000';
+
 export default function Checkout({ cartItems }) {
   const totalPrice = cartItems.reduce((total, item) => {
     return total + item.price * item.qty;
@@ -31,7 +33,7 @@ export default function Checkout({ cartItems }) {
       
       console.log("Sending to FastAPI:", description);
       
-      const response = await fetch("http://localhost:8000/analyze-meal", {
+      const response = await fetch(`${FASTAPI_URL}/analyze-meal`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',

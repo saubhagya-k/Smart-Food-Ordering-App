@@ -4,11 +4,12 @@ export default function LoginForm({ onSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  import { API_URL } from './../../Utils/api'; 
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:8080/confirm", {
+   const res = await fetch(`${API_URL}/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

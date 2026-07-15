@@ -12,8 +12,8 @@ const ReviewCarousel = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/reviews');
-      const data = await response.json();
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${API_URL}/api/reviews`);
       
       if (data.success) {
         setReviews(data.reviews);

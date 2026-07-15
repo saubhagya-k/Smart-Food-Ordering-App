@@ -1,6 +1,7 @@
 
 import {Link } from 'react-router-dom'
 import React, { useState } from 'react';
+import { API_URL } from './../../Utils/api';
 
 function Header({user, setUser, setShowLogin}) {
 
@@ -53,7 +54,7 @@ function Header({user, setUser, setShowLogin}) {
           <button
             className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 text-sm hover:rounded-3xl"
             onClick={() => {
-              fetch("http://localhost:8080/logout", {
+              fetch(`${API_URL}/logout`, {
                 credentials: "include",
               });
               setUser(null);
@@ -109,16 +110,6 @@ function Header({user, setUser, setShowLogin}) {
 
               <img src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/MERCHANDISING_BANNERS/IMAGES/MERCH/2024/7/23/b6d9b7ab-91c7-4f72-9bf2-fcd4ceec3537_DO3BU.png"/>
             </div>
-
-            
-
-    
-             
-
-
-
-
-
 
 
            </div>

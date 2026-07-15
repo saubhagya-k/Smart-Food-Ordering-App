@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from './../../Utils/api'
 
 export default function SignupForm({ onSuccess }) {
   const [form, setForm] = useState({
@@ -17,7 +18,7 @@ export default function SignupForm({ onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:8080/signup", {
+    const res = await fetch(`${API_URL}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

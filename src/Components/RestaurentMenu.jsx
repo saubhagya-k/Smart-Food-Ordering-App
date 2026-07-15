@@ -13,8 +13,9 @@ export default function RestaurantMenu({ setCartCount, cartItems, setCartItems }
 
     useEffect(() => {
         async function fetchData() {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
    const localProxyAPI = 
-     `http://localhost:8080/api/swiggy/mapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=28.7040592&lng=77.10249019999999&restaurantId=${id}`;
+     `${API_URL}/api/swiggy/mapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=28.7040592&lng=77.10249019999999&restaurantId=${id}`;
 
    try {
      const response = await fetch(localProxyAPI);

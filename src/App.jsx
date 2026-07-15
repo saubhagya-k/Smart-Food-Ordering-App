@@ -14,6 +14,7 @@ import Checkout from "./Components/Checkout"
 import PaymentPage from "./Components/PaymentPage";
 
 import OrderSuccess from "./Components/OrderSuccess";
+import { API_URL } from './../Utils/api';
 
 
 
@@ -30,7 +31,7 @@ function App() {
   useEffect(() => {
   const timer = setTimeout(async () => {
     try {
-      const res = await fetch("http://localhost:8080/auth/me", {
+      const res = await fetch(`${API_URL}/auth/me`, {
         credentials: "include",
       });
 

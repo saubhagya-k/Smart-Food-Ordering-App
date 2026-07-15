@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router"
 
+import { API_URL } from './../../Utils/api';
+
 
 
 export default function SearchFood(){
@@ -15,9 +17,8 @@ export default function SearchFood(){
         
             async function fetchData() {
                
-               const proxyServer = "https://cors-anywhere.herokuapp.com/"
-               const swiggyAPI = `https://www.swiggy.com/mapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=28.7040592&lng=77.10249019999999&restaurantId=${id}`;
-               const response = await fetch(proxyServer+swiggyAPI);
+               const localProxyAPI = `${API_URL}/api/swiggy/mapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=28.7040592&lng=77.10249019999999&restaurantId=${id}`;
+               const response = await fetch(localProxyAPI);
                const data = await response.json();
                const tempData = data?.data?.cards[5]?.groupedCard?.cardGroupMap?.REGULAR?.cards;
                const filterData = tempData.filter((items)=> 'title' in items?.card?.card)

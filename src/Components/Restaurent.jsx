@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import RestCard from './RestCard';  
 import RestCardTop from './RestCardTop';   
 import { mockPagination } from '../../Utils/mockPagination';
+import { API_URL } from './../../Utils/api'; 
 
 export default function Restaurent() {
   const [RestData, setRestData] = useState([]);
@@ -56,8 +57,7 @@ export default function Restaurent() {
   // 🛠️ FIX: Wrapped fetchData inside a proper useEffect hook so it actually fires!
   useEffect(() => {
     async function fetchData() {
-      const localProxyAPI =
-        "http://localhost:8080/api/swiggy/dapi/restaurants/list/v5?lat=25.5943&lng=85.1352&is-seo-homepage-enabled=true";
+      const localProxyAPI = `${API_URL}/api/swiggy/dapi/restaurants/list/v5?lat=25.5943&lng=85.1352&is-seo-homepage-enabled=true`;
 
       try {
         const response = await fetch(localProxyAPI);  
