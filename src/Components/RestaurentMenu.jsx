@@ -13,23 +13,36 @@ export default function RestaurantMenu({ setCartCount, cartItems, setCartItems }
 
     useEffect(() => {
         async function fetchData() {
-           // 👇 Using your local Express proxy instead of cors-anywhere
-           const localProxyAPI = 
-             `http://localhost:8080/api/swiggy/mapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=28.7040592&lng=77.10249019999999&restaurantId=${id}`;
+   const localProxyAPI = 
+     `http://localhost:8080/api/swiggy/mapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=28.7040592&lng=77.10249019999999&restaurantId=${id}`;
 
-           try {
-             const response = await fetch(localProxyAPI);
-             const data = await response.json();
-             
-             // Safely extract the menu card streams using optional chaining
-             const tempData = data?.data?.cards[5]?.groupedCard?.cardGroupMap?.REGULAR?.cards || [];
-             const filterData = tempData.filter((items) => 'title' in items?.card?.card);
-             
-             setRestData(filterData);
-           } catch (err) {
-             console.error("Error fetching menu data:", err);
-           }
-        }
+   try {
+     const response = await fetch(localProxyAPI);
+     const data = await response.json();
+     
+     // 1. Gracefully handle API errors or no data
+     if (!data?.data?.cards) {
+       setRestData([]);
+       return;
+     }
+
+     // 2. Dynamically find the card that holds the menu (instead of hardcoding index 5)
+     const menuCard = data.data.cards.find(
+       (card) => card?.groupedCard?.cardGroupMap?.REGULAR?.cards
+     );
+
+     // 3. If found, extract the cards; otherwise, fallback to empty array
+     const regularCards = menuCard?.groupedCard?.cardGroupMap?.REGULAR?.cards || [];
+     
+     // 4. Filter to only those with a 'title'
+     const filterData = regularCards.filter((items) => 'title' in items?.card?.card);
+     
+     setRestData(filterData);
+   } catch (err) {
+     console.error("Error fetching menu data:", err);
+     setRestData([]); // Reset on error so UI doesn't hang
+   }
+}
    
         fetchData();
     }, [id]); //  CRUCIAL FIX: Added 'id' here so it re-fetches when switching restaurants

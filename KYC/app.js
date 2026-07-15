@@ -1,6 +1,7 @@
 const express = require('express');
 
 const cors = require("cors");
+const allowedOrigin = process.env.CLIENT_URL || "http://localhost:3001";
 
 
 
@@ -11,7 +12,9 @@ app.use(morgan('dev'));
 
 app.use(
   cors({
-    origin: "http://localhost:3001",
+    origin: allowedOrigin,
+   
+   
     credentials: true,
   })
 );
@@ -78,6 +81,7 @@ app.use('/api', reviewRoutes);
 
 
 
-app.listen(8080, () => {
-  console.log("Server running on port 8080");
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

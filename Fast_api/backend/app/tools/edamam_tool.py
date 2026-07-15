@@ -3,17 +3,20 @@ import json
 import hashlib
 import time
 from typing import Dict, Any, Optional, List
+import os
+from dotenv import load_dotenv
+load_dotenv() 
 
 class EdamamTool:
     """
     Edamam Tool that handles MULTIPLE ingredients in ONE API call
     """
     
-    def __init__(self):
-        # Your working credentials
-        self.app_id = "53659b8e"
-        self.app_key = "c0d44645e92ba7d8c8f3cefe914ddd7d"
-        self.base_url = "https://api.edamam.com/api/nutrition-details"
+    def __init__(self, app_id: str = None, app_key: str = None):
+        self.app_id = app_id or os.getenv("EDAMAM_APP_ID")
+        self.app_key = app_key or os.getenv("EDAMAM_APP_KEY")
+        if not self.app_id or not self.app_key:
+            raise ValueError("Edamam credentials missing!")
         
         # Cache storage
         self.cache = {}

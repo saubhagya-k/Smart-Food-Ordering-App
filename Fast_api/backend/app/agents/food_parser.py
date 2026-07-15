@@ -6,22 +6,26 @@ import time
 import hashlib
 from typing import Dict, Any, Optional, List
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyA3lBgidspcGyooVK0UAws_BwBB8uZdDpQ"
-
+import os
 class FoodParserAgent:
     """
     AI Agent - ONE Gemini call per description (handles multiple items)
     """
     
-    def __init__(self):
-        print("🤖 Initializing Food Parser Agent...")
-        
-        # SINGLE model - no switching
+    def __init__(self, api_key: str = None):
+        # If no key passed, try reading from env (safety net)
+        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
+        if not self.api_key:
+            raise ValueError("GOOGLE_API_KEY not provided to FoodParserAgent")
+            
         self.model = "models/gemini-2.5-flash-lite"
         self.llm = ChatGoogleGenerativeAI(
             model=self.model,
             temperature=0.1,
+            google_api_key=self.api_key,  # <-- Pass explicitly
             convert_system_message_to_human=True
         )
         
