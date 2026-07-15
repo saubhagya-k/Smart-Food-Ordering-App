@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { API_URL } from './../../Utils/api'; 
 
 export default function LoginForm({ onSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  import { API_URL } from './../../Utils/api'; 
+  
 
   async function handleSubmit(e) {
     e.preventDefault();
