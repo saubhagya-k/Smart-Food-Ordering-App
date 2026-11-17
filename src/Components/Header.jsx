@@ -55,6 +55,7 @@ function Header({user, setUser, setShowLogin}) {
             className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 text-sm hover:rounded-3xl"
             onClick={() => {
               fetch(`${API_URL}/logout`, {
+                method: "POST",
                 credentials: "include",
               });
               setUser(null);

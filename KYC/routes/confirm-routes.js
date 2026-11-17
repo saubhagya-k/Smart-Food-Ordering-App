@@ -35,23 +35,28 @@ body("password").isLength({ min: 5 }),
       username: user.username,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7d" }
     );
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: false, 
       sameSite: "lax",
-        maxAge: 3600000*24*7, 
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days, same as the JWT
     });
 
     res.json({ message: "Login success" });
   }
 );
 
+/* ================= LOGOUT ================= */
+router.post("/logout", (req, res) => {
+  res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "lax" });
+  res.json({ message: "Logged out" });
+});
+
 /* ================= AUTH CHECK ================= */
 router.get("/auth/me", authMiddleware, (req, res) => {
-  console.log("AUTH /me HIT");
   res.status(200).json({ loggedIn: true,
      user: {
       id: req.user.id,

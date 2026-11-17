@@ -17,6 +17,9 @@ class EdamamTool:
         self.app_key = app_key or os.getenv("EDAMAM_APP_KEY")
         if not self.app_id or not self.app_key:
             raise ValueError("Edamam credentials missing!")
+
+        # Edamam Nutrition Analysis API (accepts many ingredients in one POST)
+        self.base_url = "https://api.edamam.com/api/nutrition-details"
         
         # Cache storage
         self.cache = {}

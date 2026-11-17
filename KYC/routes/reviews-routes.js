@@ -6,17 +6,12 @@ const authMiddleware = require('../middleware/auth');
 // POST - Submit a review
 router.post('/reviews', authMiddleware, async (req, res) => {
   try {
-    // Debug - log what's in req.user
-    console.log('req.user:', req.user);
-    
     // Get user from JWT token
     const userId = req.user.id;
     const username = req.user.username || req.user.name || 'Anonymous';
     
     // Get rating and reviewText from frontend
-    const { rating, reviewText } = req.body;
-    
-    console.log('Received:', { userId, username, rating, reviewText });
+    const { rating, reviewText, restaurantId } = req.body;
     
     // Validation
     if (!rating) {
@@ -32,7 +27,8 @@ router.post('/reviews', authMiddleware, async (req, res) => {
       userId: userId,
       username: username,
       rating: rating,
-      reviewText: reviewText || ''
+      reviewText: reviewText || '',
+      ...(restaurantId && { restaurantId: String(restaurantId) })
     });
     
     await review.save();
@@ -69,6 +65,33 @@ router.get('/reviews', async (req, res) => {
       reviews: reviews
     });
     
+  } catch (error) {
+    console.error('Fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// GET - Get reviews for one restaurant (public)
+router.get('/reviews/restaurant/:restaurantId', async (req, res) => {
+  try {
+    const restaurantId = String(req.params.restaurantId);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+
+    const reviews = await Review.find({ restaurantId })
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    const avgRating = await Review.aggregate([
+      { $match: { restaurantId } },
+      { $group: { _id: null, average: { $avg: '$rating' } } }
+    ]);
+
+    res.json({
+      success: true,
+      average: avgRating[0]?.average || 0,
+      total: reviews.length,
+      reviews: reviews
+    });
   } catch (error) {
     console.error('Fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch reviews' });

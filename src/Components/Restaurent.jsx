@@ -117,7 +117,7 @@ export default function Restaurent() {
       
       {/* Restaurant Grid */}
       <h1 className="mx-auto max-w-[80%] font-bold text-2xl mt-20 mr-28">
-        Restaurants with online food delivery in Chennai
+        Restaurants with online food delivery in Patna
       </h1>
 
       <div className="w-[80%] container mx-auto">

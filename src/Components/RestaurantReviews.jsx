@@ -83,7 +83,7 @@ const RestaurantReviews = ({ restaurantId }) => {
                   <p className="text-gray-700 mt-2">{review.reviewText}</p>
                 )}
                 <p className="text-xs text-gray-400 mt-2">
-                  - {review.userId?.name || 'Anonymous User'}
+                  - {review.username || 'Anonymous User'}
                 </p>
               </div>
             </div>

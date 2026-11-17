@@ -1,3 +1,6 @@
+const dotenv = require('dotenv');
+dotenv.config(); // load .env before anything reads process.env
+
 const express = require('express');
 
 const cors = require("cors");
@@ -19,8 +22,6 @@ app.use(
   })
 );
 
-const dotenv = require('dotenv');
-
 const cookieParser = require('cookie-parser')
 
 
@@ -28,8 +29,6 @@ const cookieParser = require('cookie-parser')
 
 app.use(cookieParser());
 
-
-dotenv.config()
 
 const connecttoDb = require("./config/db")
 

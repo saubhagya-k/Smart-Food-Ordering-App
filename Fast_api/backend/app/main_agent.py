@@ -5,15 +5,20 @@ from typing import List, Dict, Any, Optional
 from .agents.food_parser import FoodParserAgent
 from .tools.edamam_tool import EdamamTool
 import json
+import os
 import re
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize FastAPI
 app = FastAPI()
 
-# CORS for React
+# CORS for React (set FRONTEND_URL in .env when deployed)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3001")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

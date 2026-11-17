@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
+import { API_URL } from './../../Utils/api';
 
 const ReviewCarousel = () => {
   const [reviews, setReviews] = useState([]);
@@ -12,9 +13,12 @@ const ReviewCarousel = () => {
 
   const fetchReviews = async () => {
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const response = await fetch(`${API_URL}/api/reviews`);
-      
+      if (!response.ok) {
+        throw new Error(`Reviews request failed: ${response.status}`);
+      }
+      const data = await response.json();
+
       if (data.success) {
         setReviews(data.reviews);
         setAverageRating(data.average);

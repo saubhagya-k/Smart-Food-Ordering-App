@@ -121,7 +121,7 @@ export default function CartPopup({ cartItems }) {
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 {/* View Cart Button */}
                 <button
-                  onClick={() => navigate("/cart")}
+                  onClick={() => navigate("/checkout")}
                   className="flex-1 sm:flex-none px-5 py-2.5 border-2 border-green-600 text-green-600 rounded-xl font-semibold text-sm hover:bg-green-50 transition-all duration-200 flex items-center justify-center gap-2 group"
                 >
                   <svg 

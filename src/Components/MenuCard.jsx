@@ -12,7 +12,7 @@ export default function MenuCard({menuItems,foodselected,setCartCount,cartItems,
             <p className="text-2xl font-bold">{menuItems.title}</p>
             <div>
                 {
-                    menuItems?.categories?.map((items)=> <MenuCard key={items?.title} menuItems={items}></MenuCard>)
+                    menuItems?.categories?.map((items)=> <MenuCard key={items?.title} menuItems={items} foodselected={foodselected} setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems}></MenuCard>)
                 }
             </div>
             </div>
@@ -41,7 +41,7 @@ export default function MenuCard({menuItems,foodselected,setCartCount,cartItems,
             </div>
             <div>
                 {
-                    menuItems?.itemCards?.filter( (food) => food?.card?.info?.isVeg === 1).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info}  cartItems={cartItems} setCartItems={setCartItems}></RestInfo>)
+                    menuItems?.itemCards?.filter( (food) => food?.card?.info?.isVeg === 1).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems}></RestInfo>)
                 }
             </div>
             <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
@@ -58,7 +58,7 @@ export default function MenuCard({menuItems,foodselected,setCartCount,cartItems,
             </div>
             <div>
                 {
-                    menuItems?.itemCards?.filter( (food) => !(food?.card?.info?.isVeg) ).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info}  cartItems={cartItems} setCartItems={setCartItems} ></RestInfo>)
+                    menuItems?.itemCards?.filter( (food) => !(food?.card?.info?.isVeg) ).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems} ></RestInfo>)
                 }
             </div>
             <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
