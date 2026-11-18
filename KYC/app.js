@@ -13,21 +13,24 @@ if (missingEnv.length) {
 const express = require('express');
 
 const cors = require("cors");
-// CLIENT_URL = the frontend address(es) allowed to call this server,
-// comma-separated, e.g. https://smart-food-ordering-app-lake.vercel.app
-// It must be a real address, not "*": the browser refuses "*" for requests
-// that send the login cookie. Without it, allow the local dev ports.
-const allowedOrigin = (process.env.CLIENT_URL || "")
-  .split(",")
-  .map((url) => url.trim().replace(/\/$/, ""))
-  .filter((url) => url && url !== "*");
-if (allowedOrigin.length === 0) {
-  allowedOrigin.push("http://localhost:3001", "http://localhost:1234");
-}
+// Websites allowed to call this server with the login cookie.
+// The deployed frontend and local dev ports are built in, so it works
+// without any Render setting. CLIENT_URL (comma-separated) can add more.
+// "*" is ignored: browsers refuse "*" for requests that send cookies.
+const allowedOrigin = [
+  "https://smart-food-ordering-app-lake.vercel.app",
+  "http://localhost:3001",
+  "http://localhost:1234",
+  ...(process.env.CLIENT_URL || "")
+    .split(",")
+    .map((url) => url.trim().replace(/\/$/, ""))
+    .filter((url) => url && url !== "*"),
+];
 
 
 
 const app = express();
+app.set('trust proxy', 1); // Render's proxy: lets req.secure see https
 const morgan = require("morgan");
 app.use(morgan('dev'));
 

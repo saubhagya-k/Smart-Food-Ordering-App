@@ -7,15 +7,17 @@ const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const authMiddleware = require("../middleware/auth");
 
-// When the frontend is on another site over https (Vercel -> Render), the
-// browser only sends the login cookie if it is SameSite=None and Secure.
-// Locally (http://localhost) keep the simpler Lax cookie.
-const crossSite = (process.env.CLIENT_URL || "").startsWith("https://");
-const cookieOptions = {
-  httpOnly: true,
-  secure: crossSite,
-  sameSite: crossSite ? "none" : "lax",
-};
+// Login cookie settings. On the deployed https server the frontend lives on
+// another site (vercel.app -> onrender.com), and the browser only sends the
+// cookie back if it is SameSite=None and Secure. Locally (plain http) use Lax.
+function cookieOptions(req) {
+  const https = req.secure;
+  return {
+    httpOnly: true,
+    secure: https,
+    sameSite: https ? "none" : "lax",
+  };
+}
 
 /* ================= LOGIN ================= */
 router.post("/confirm",body("email").isEmail(),
@@ -49,7 +51,7 @@ body("password").isLength({ min: 5 }),
     );
 
     res.cookie("token", token, {
-      ...cookieOptions,
+      ...cookieOptions(req),
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days, same as the JWT
     });
 
@@ -59,7 +61,7 @@ body("password").isLength({ min: 5 }),
 
 /* ================= LOGOUT ================= */
 router.post("/logout", (req, res) => {
-  res.clearCookie("token", cookieOptions);
+  res.clearCookie("token", cookieOptions(req));
   res.json({ message: "Logged out" });
 });
 
