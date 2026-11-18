@@ -218,6 +218,14 @@ async def analyze_meal(request: FoodRequest):
                 total_carbs += item_carbs
                 total_fat += item_fat
         
+        if not final_items:
+            return FoodResponse(
+                success=False,
+                message="Couldn't find nutrition data for these items",
+                data=None,
+                api_calls=api_calls
+            )
+
         # STEP 4: Prepare response
         daily_percentage = round((total_calories / DAILY_CALORIE_GOAL) * 100, 1)
         

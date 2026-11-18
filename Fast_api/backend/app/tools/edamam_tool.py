@@ -18,8 +18,10 @@ class EdamamTool:
         if not self.app_id or not self.app_key:
             raise ValueError("Edamam credentials missing!")
 
-        # Edamam Nutrition Analysis API (accepts many ingredients in one POST)
-        self.base_url = "https://api.edamam.com/api/nutrition-details"
+        # Edamam Nutrition Analysis API, one item per request. (The bulk
+        # "nutrition-details" endpoint rejects the whole meal with
+        # 555 low_quality if any item is a dish name like "Red Velvet Cake".)
+        self.base_url = "https://api.edamam.com/api/nutrition-data"
         
         # Cache storage
         self.cache = {}
@@ -53,10 +55,10 @@ class EdamamTool:
     
     def get_meal_nutrition(self, ingredients: List[str]) -> Dict[str, Any]:
         """
-        ONE API call for MULTIPLE ingredients
-        Example: ["2 burger", "1 fries", "3 coke"]
+        Nutrition for several items, e.g. ["2 burger", "1 fries", "3 coke"].
+        Items Edamam can't recognise are skipped and listed under "skipped".
         """
-        print(f"🍽️ Edamam Tool: ONE API call for {len(ingredients)} items")
+        print(f"🍽️ Edamam Tool: looking up {len(ingredients)} items")
         for i, ing in enumerate(ingredients):
             print(f"   {i+1}. {ing}")
         
@@ -71,56 +73,71 @@ class EdamamTool:
                 "status_code": 200
             }
         
-        # Prepare request
-        params = {
-            "app_id": self.app_id,
-            "app_key": self.app_key
-        }
-        
-        data = {
-            "title": "Meal Analysis",
-            "ingr": ingredients  # Send ALL ingredients at once
-        }
-        
-        headers = {"Content-Type": "application/json"}
-        
-        try:
-            # ONE API call for ALL ingredients
-            response = requests.post(
-                self.base_url,
-                params=params,
-                json=data,
-                headers=headers
-            )
-            
-            print(f"📡 Edamam API Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                etag = response.headers.get('ETag', '')
-                result = response.json()
-                self._store_in_cache(cache_key, etag, result)
-                
-                return {
-                    "source": "api",
-                    "data": result,
-                    "cache_key": cache_key,
-                    "status_code": 200
-                }
-            else:
-                return {
-                    "source": "error",
-                    "error": True,
-                    "status_code": response.status_code,
-                    "message": response.text[:200]
-                }
-                
-        except Exception as e:
+        # One request per item, so a dish Edamam can't read only skips
+        # that item instead of failing the whole meal.
+        combined_ingredients = []
+        total_nutrients: Dict[str, Dict[str, Any]] = {}
+        failed = []
+
+        for ingredient in ingredients:
+            try:
+                response = requests.get(
+                    self.base_url,
+                    params={
+                        "app_id": self.app_id,
+                        "app_key": self.app_key,
+                        "nutrition-type": "logging",
+                        "ingr": ingredient,
+                    },
+                    timeout=20,
+                )
+            except Exception as e:
+                failed.append(f"{ingredient}: {e}")
+                continue
+
+            print(f"📡 Edamam API Status for '{ingredient}': {response.status_code}")
+            if response.status_code != 200:
+                failed.append(f"{ingredient}: {response.status_code} {response.text[:100]}")
+                continue
+
+            for item in response.json().get("ingredients", []):
+                parsed_items = item.get("parsed") or []
+                if not parsed_items:
+                    failed.append(f"{ingredient}: not recognised")
+                    continue
+                combined_ingredients.append({"text": ingredient, "parsed": parsed_items})
+                for parsed in parsed_items:
+                    for key, nutrient in (parsed.get("nutrients") or {}).items():
+                        total = total_nutrients.setdefault(
+                            key, {"label": nutrient.get("label", key), "quantity": 0, "unit": nutrient.get("unit", "")}
+                        )
+                        total["quantity"] += nutrient.get("quantity", 0) or 0
+
+        if failed:
+            print(f"⚠️ Edamam skipped: {failed}")
+
+        if not combined_ingredients:
             return {
                 "source": "error",
                 "error": True,
-                "message": str(e)
+                "status_code": 422,
+                "message": "Edamam could not recognise any item: " + "; ".join(failed)[:300],
             }
-    
+
+        result = {
+            "ingredients": combined_ingredients,
+            "totalNutrients": total_nutrients,
+            "totalDaily": {},
+            "skipped": failed,
+        }
+        self._store_in_cache(cache_key, "", result)
+        return {
+            "source": "api",
+            "data": result,
+            "cache_key": cache_key,
+            "status_code": 200,
+        }
+
     def extract_meal_summary(self, api_response: Dict[str, Any]) -> Dict[str, Any]:
         """Extract nutrition summary for the entire meal"""
         if api_response.get("error"):
