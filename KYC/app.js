@@ -1,10 +1,29 @@
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config(); // load .env before anything reads process.env
+// Load KYC/.env no matter which folder the server is started from
+// (plain dotenv.config() reads .env from the current folder instead).
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+const missingEnv = ['MONGO_URI', 'JWT_SECRET'].filter((key) => !process.env[key]);
+if (missingEnv.length) {
+  console.error(`Missing ${missingEnv.join(', ')} in ${path.join(__dirname, '.env')}`);
+  process.exit(1);
+}
 
 const express = require('express');
 
 const cors = require("cors");
-const allowedOrigin = process.env.CLIENT_URL || "http://localhost:3001";
+// CLIENT_URL = the frontend address(es) allowed to call this server,
+// comma-separated, e.g. https://smart-food-ordering-app-lake.vercel.app
+// It must be a real address, not "*": the browser refuses "*" for requests
+// that send the login cookie. Without it, allow the local dev ports.
+const allowedOrigin = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((url) => url.trim().replace(/\/$/, ""))
+  .filter((url) => url && url !== "*");
+if (allowedOrigin.length === 0) {
+  allowedOrigin.push("http://localhost:3001", "http://localhost:1234");
+}
 
 
 

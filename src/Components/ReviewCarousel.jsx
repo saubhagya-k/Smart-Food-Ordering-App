@@ -24,7 +24,7 @@ const ReviewCarousel = () => {
         setAverageRating(data.average);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.warn('Error fetching reviews:', error);
     } finally {
       setLoading(false);
     }

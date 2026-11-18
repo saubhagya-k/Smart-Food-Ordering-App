@@ -75,7 +75,7 @@ export default function Restaurent() {
         setRestDataTop(topBannerCard?.card?.card?.imageGridCards?.info || []);
 
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.warn("Error fetching data:", err);
       }
     }
 

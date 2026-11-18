@@ -40,7 +40,7 @@ export default function RestaurantMenu({ setCartCount, cartItems, setCartItems }
      
      setRestData(filterData);
    } catch (err) {
-     console.error("Error fetching menu data:", err);
+     console.warn("Error fetching menu data:", err);
      setRestData([]); // Reset on error so UI doesn't hang
    }
 }

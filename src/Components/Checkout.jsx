@@ -66,7 +66,7 @@ export default function Checkout({ cartItems }) {
         setMessage("❌ Failed to connect to nutrition service");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.warn("Error:", error);
       setMessage("❌ Error connecting to nutrition service. Make sure FastAPI is running on port 8000");
     } finally {
       setIsLoading(false);

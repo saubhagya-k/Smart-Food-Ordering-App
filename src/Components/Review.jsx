@@ -40,7 +40,7 @@ const Review = () => {
       }
       
     } catch (err) {
-      console.error('Error:', err)
+      console.warn('Error:', err)
       setError('Network error. Please try again.')
     } finally {
       setIsLoading(false)
