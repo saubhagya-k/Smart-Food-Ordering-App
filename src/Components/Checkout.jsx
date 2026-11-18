@@ -113,7 +113,7 @@ export default function Checkout({ cartItems }) {
       {/* Display nutrition summary if available */}
       {nutritionData && (
         <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h3 className="font-semibold text-green-800 mb-2">Nutrition Summary</h3>
+          <h3 className="font-semibold text-green-800 mb-2">Nutrition Summary (estimate)</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <span className="text-green-700">Calories:</span>
             <span className="font-medium">{nutritionData.meal_summary.total_calories} kcal</span>
@@ -124,6 +124,32 @@ export default function Checkout({ cartItems }) {
             <span className="text-green-700">Fat:</span>
             <span className="font-medium">{nutritionData.meal_summary.total_fat_g}g</span>
           </div>
+          {/* What each item was matched as, so the user can judge the estimate */}
+          <ul className="mt-3 space-y-1 text-xs text-gray-700">
+            {nutritionData.items.map((item, i) => (
+              <li key={i}>
+                <span className="font-medium">{item.quantity} × {item.food}</span>
+                {item.matched_as && (
+                  <span className="text-gray-500">
+                    {" "}— estimated as {item.matched_as}
+                    {item.weight_g ? `, ~${item.weight_g} g` : ""}
+                  </span>
+                )}
+                <span>: {Math.round(item.calories)} kcal</span>
+                {item.confidence === "low" && (
+                  <span className="ml-1 text-amber-600">(rough match)</span>
+                )}
+              </li>
+            ))}
+            {nutritionData.not_found?.length > 0 && (
+              <li className="text-amber-700">
+                Not found, so not counted: {nutritionData.not_found.join(", ")}
+              </li>
+            )}
+          </ul>
+          <p className="mt-2 text-xs text-gray-500">
+            Estimates based on a typical serving. Restaurant portions and recipes vary.
+          </p>
           <div className="mt-2 text-xs text-green-600">
             {nutritionData.insights.map((insight, i) => (
               <div key={i}>💡 {insight}</div>

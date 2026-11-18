@@ -67,157 +67,72 @@ async def analyze_meal(request: FoodRequest):
         
         # Check for embedded calories in original description
         embedded_calories = extract_calories_from_text(request.description)
-        
-        needs_api_items = []
-        embedded_items = []
-        
-        for item in parsed_items:
-            # Check if this item has embedded calories
-            item_text = item.get("food_name", "")
-            item_embedded = extract_calories_from_text(item_text)
-            
-            if item_embedded or embedded_calories:
-                item["has_embedded_calories"] = True
-                item["embedded_data"] = item_embedded or embedded_calories
-                embedded_items.append(item)
-            else:
-                # Format for Edamam
-                qty = int(item.get("quantity", 1))
-                food = item.get("food_name", "").strip()
-                
-                # Clean food name
-                food = re.sub(r'\(\d+\s*K?cal[^)]*\)', '', food).strip()
-                
-                if qty == 1:
-                    formatted = f"1 {food}"
-                else:
-                    formatted = f"{qty} {food}"
-                
-                needs_api_items.append(formatted)
-        
-        print(f"📊 Items needing API: {len(needs_api_items)}")
-        print(f"📊 Items with embedded calories: {len(embedded_items)}")
-        print(f"📊 Formatted for Edamam: {needs_api_items}")
-        
-        # STEP 2: Get nutrition from Edamam
-        nutrition_results = {"items": [], "total": {"calories": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0}}
-        
-        if needs_api_items:
-            print(f"\n🔍 STEP 2: Calling Edamam for {len(needs_api_items)} items")
-            api_result = edamam.get_meal_nutrition(needs_api_items)
-            
-            if api_result.get("source") == "cache":
-                api_calls["cache_hits"] += 1
-            else:
-                api_calls["edamam"] = 1
-            
-            if api_result.get("status_code") == 200:
-                nutrition_results = edamam.extract_meal_summary(api_result)
-                print(f"✅ Edamam success: {nutrition_results.get('total', {}).get('calories', 0)} calories")
-            else:
-                print(f"⚠️ Edamam error: {api_result.get('message')}")
-                
-                # Try common food substitutions
-                substitutions = {
-                    "burger": "hamburger sandwich",
-                    "fries": "potato french fries",
-                    "coke": "coca-cola classic",
-                    "pizza": "cheese pizza",
-                    "cold drink": "soft drink",
-                    "soda": "carbonated soft drink"
-                    }
-                
-                simplified_items = []
-                for item in needs_api_items:
-                    new_item = item
-                    for key, value in substitutions.items():
-                        if key in item.lower():
-                            new_item = item.lower().replace(key, value)
-                    simplified_items.append(new_item)
-                
-                if simplified_items != needs_api_items:
-                    print(f"🔄 Trying with substitutions: {simplified_items}")
-                    api_result = edamam.get_meal_nutrition(simplified_items)
-                    if api_result.get("status_code") == 200:
-                        nutrition_results = edamam.extract_meal_summary(api_result)
-                        print(f"✅ Substitutions worked!")
-        
-        # STEP 3: Combine results
+
         final_items = []
+        not_found = []
         total_calories = 0
         total_protein = 0
         total_carbs = 0
         total_fat = 0
-        
-        # Process embedded calorie items
-        for item in embedded_items:
-            food_name = item.get("food_name", "Unknown")
-            quantity = item.get("quantity", 1)
+        edamam.api_calls = 0
+        edamam.cache_hits = 0
+
+        # STEP 2: Look up each item
+        for item in parsed_items:
+            food_name = re.sub(r'\(\d+\s*K?cal[^)]*\)', '', item.get("food_name", "")).strip()
+            quantity = item.get("quantity", 1) or 1
             unit = item.get("unit")
-            
-            if "embedded_data" in item:
-                embedded = item["embedded_data"]
-                calories_per_100g = embedded.get("calories_per_100g", 0)
-                
-                if unit == "g" or unit == "gram":
+            item_embedded = extract_calories_from_text(item.get("food_name", "")) or embedded_calories
+
+            if item_embedded:
+                # The order text gave calories, e.g. "200g pasta (350 Kcal/100g)"
+                calories_per_100g = item_embedded.get("calories_per_100g", 0)
+                if unit in ("g", "gram", "grams"):
                     item_calories = (calories_per_100g / 100) * quantity
                 else:
-                    # Assume whole item = 100g equivalent
-                    item_calories = calories_per_100g * quantity
-            else:
-                item_calories = 0
-            
+                    item_calories = calories_per_100g * quantity  # assume 100 g each
+                final_items.append({
+                    "food": food_name, "quantity": quantity,
+                    "calories": round(item_calories, 1),
+                    "protein": 0, "carbs": 0, "fat": 0,
+                    "source": "embedded", "matched_as": None,
+                    "weight_g": None, "confidence": "high",
+                })
+                total_calories += item_calories
+                continue
+
+            result = edamam.lookup_item(
+                quantity,
+                item.get("lookup_name") or food_name,
+                unit=unit,
+                display_name=food_name,
+            )
+            if not result:
+                not_found.append(food_name)
+                continue
+
+            print(f"✅ {food_name} -> {result['matched_as']} "
+                  f"({result['weight_g']} g, {result['calories']:.0f} kcal, {result['confidence']})")
             final_items.append({
                 "food": food_name,
                 "quantity": quantity,
-                "calories": round(item_calories, 1),
-                "protein": 0,
-                "carbs": 0,
-                "fat": 0,
-                "source": "embedded"
+                "calories": round(result["calories"], 1),
+                "protein": round(result["protein_g"], 1),
+                "carbs": round(result["carbs_g"], 1),
+                "fat": round(result["fat_g"], 1),
+                "source": "api",
+                "matched_as": result["matched_as"],
+                "weight_g": result["weight_g"],
+                "confidence": result["confidence"],
             })
-            
-            total_calories += item_calories
-        
-        # Process API items
-        if nutrition_results and "items" in nutrition_results:
-            for api_item in nutrition_results["items"]:
-                # Find matching parsed item for quantity
-                food_text = api_item.get("text", "").lower()
-                quantity = 1
-                
-                for parsed in parsed_items:
-                    parsed_food = parsed.get("food_name", "").lower()
-                    if parsed_food in food_text or food_text in parsed_food:
-                        quantity = parsed.get("quantity", 1)
-                        break
-                
-                # Extract nutrients with proper extraction
-                item_calories = api_item.get("calories", 0)
-                item_protein = api_item.get("protein_g", 0)
-                item_carbs = api_item.get("carbs_g", 0)
-                item_fat = api_item.get("fat_g", 0)
+            total_calories += result["calories"]
+            total_protein += result["protein_g"]
+            total_carbs += result["carbs_g"]
+            total_fat += result["fat_g"]
 
+        api_calls["edamam"] = edamam.api_calls
+        api_calls["cache_hits"] = edamam.cache_hits
 
-                
-
-                
-                
-                final_items.append({
-                    "food": api_item.get("food", food_text[:20]),
-                    "quantity": quantity,
-                    "calories": round(item_calories, 1),
-                    "protein": round(item_protein, 1),
-                    "carbs": round(item_carbs, 1),
-                    "fat": round(item_fat, 1),
-                    "source": "api"
-                })
-                
-                total_calories += item_calories
-                total_protein += item_protein
-                total_carbs += item_carbs
-                total_fat += item_fat
-        
         if not final_items:
             return FoodResponse(
                 success=False,
@@ -239,6 +154,7 @@ async def analyze_meal(request: FoodRequest):
                 "items_analyzed": len(final_items)
             },
             "items": final_items,
+            "not_found": not_found,
             "insights": generate_insights(total_calories, total_protein, total_carbs, total_fat, final_items)
         }
         

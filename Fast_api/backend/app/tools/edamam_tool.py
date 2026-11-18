@@ -1,203 +1,173 @@
-import requests
-import json
-import hashlib
-import time
-from typing import Dict, Any, Optional, List
 import os
+import re
+import time
+from typing import Any, Dict, List, Optional
+
+import requests
 from dotenv import load_dotenv
-load_dotenv() 
+
+load_dotenv()
+
+# Restaurant / marketing words that don't change what the food is.
+FILLER_WORDS = {
+    "mixed", "special", "signature", "classic", "loaded", "regular", "large",
+    "medium", "small", "premium", "deluxe", "combo", "meal", "style",
+    "homestyle", "house", "chef", "chefs", "new", "fresh", "original",
+    "the", "with", "and", "of", "in", "a", "an", "serving", "plate", "portion",
+}
+
+
+# Brand / everyday names -> the word Edamam uses
+SYNONYMS = {"coke": "cola", "pepsi": "cola", "soda": "cola", "thum": "cola"}
+
+
+def _words(text: str) -> List[str]:
+    """Lowercase keywords, plural 's' removed, filler words dropped."""
+    words = re.findall(r"[a-z]+", (text or "").lower())
+    words = [w[:-1] if len(w) > 3 and w.endswith("s") else w for w in words]
+    words = [SYNONYMS.get(w, w) for w in words]
+    return [w for w in words if w not in FILLER_WORDS]
+
+
+def _coverage(reference: str, matched: str) -> float:
+    """Share of the reference's keywords that appear in Edamam's match."""
+    ref = set(_words(reference))
+    if not ref:
+        return 0.0
+    return len(ref & set(_words(matched))) / len(ref)
+
 
 class EdamamTool:
     """
-    Edamam Tool that handles MULTIPLE ingredients in ONE API call
+    Looks up nutrition for one food item at a time with Edamam's
+    Nutrition Analysis API, and checks that what Edamam matched actually
+    fits the dish (it sometimes matches only one word, e.g.
+    "Chicken Mixed Sauce Pasta" -> a 23 g spoon of plain pasta).
     """
-    
+
     def __init__(self, app_id: str = None, app_key: str = None):
         self.app_id = app_id or os.getenv("EDAMAM_APP_ID")
         self.app_key = app_key or os.getenv("EDAMAM_APP_KEY")
         if not self.app_id or not self.app_key:
             raise ValueError("Edamam credentials missing!")
 
-        # Edamam Nutrition Analysis API, one item per request. (The bulk
-        # "nutrition-details" endpoint rejects the whole meal with
-        # 555 low_quality if any item is a dish name like "Red Velvet Cake".)
+        # Single-item endpoint. (The bulk "nutrition-details" endpoint rejects
+        # the whole meal with 555 low_quality if any item is a dish name.)
         self.base_url = "https://api.edamam.com/api/nutrition-data"
-        
-        # Cache storage
-        self.cache = {}
+
+        self.cache: Dict[str, Dict[str, Any]] = {}
         self.cache_expiry = 7 * 24 * 60 * 60  # 7 days
-    
-    def _generate_cache_key(self, ingredients: List[str]) -> str:
-        """Generate cache key from ingredients list"""
-        sorted_ingredients = sorted(ingredients)
-        combined = "|".join(sorted_ingredients)
-        return hashlib.md5(combined.encode()).hexdigest()
-    
-    def _check_cache(self, cache_key: str) -> Optional[Dict]:
-        """Check for valid cached response"""
-        if cache_key in self.cache:
-            cached = self.cache[cache_key]
-            if time.time() - cached["timestamp"] < self.cache_expiry:
-                print(f"✅ Edamam Cache hit for key: {cache_key[:8]}...")
-                return cached
-            else:
-                del self.cache[cache_key]
-        return None
-    
-    def _store_in_cache(self, cache_key: str, etag: str, data: Dict):
-        """Store response in cache"""
-        self.cache[cache_key] = {
-            "etag": etag,
-            "data": data,
-            "timestamp": time.time()
-        }
-        print(f"💾 Edamam Cached result for key: {cache_key[:8]}...")
-    
-    def get_meal_nutrition(self, ingredients: List[str]) -> Dict[str, Any]:
+        self.api_calls = 0
+        self.cache_hits = 0
+
+    # ---------- low level ----------
+
+    def _query(self, text: str) -> Optional[Dict[str, Any]]:
+        """Ask Edamam about one line like '1 serving chicken pasta'.
+        Returns the first parsed food, or None if not recognised."""
+        key = text.lower().strip()
+        cached = self.cache.get(key)
+        if cached and time.time() - cached["timestamp"] < self.cache_expiry:
+            self.cache_hits += 1
+            return cached["parsed"]
+
+        try:
+            response = requests.get(
+                self.base_url,
+                params={
+                    "app_id": self.app_id,
+                    "app_key": self.app_key,
+                    "nutrition-type": "logging",
+                    "ingr": text,
+                },
+                timeout=20,
+            )
+        except Exception as e:
+            print(f"⚠️ Edamam request failed for '{text}': {e}")
+            return None
+
+        self.api_calls += 1
+        print(f"📡 Edamam '{text}': HTTP {response.status_code}")
+        if response.status_code != 200:
+            print(f"⚠️ Edamam error: {response.text[:150]}")
+            return None
+
+        parsed = None
+        for ingredient in response.json().get("ingredients", []):
+            if ingredient.get("parsed"):
+                parsed = ingredient["parsed"][0]
+                break
+
+        self.cache[key] = {"parsed": parsed, "timestamp": time.time()}
+        return parsed
+
+    # ---------- public ----------
+
+    def lookup_item(
+        self,
+        quantity: float,
+        name: str,
+        unit: Optional[str] = None,
+        display_name: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
         """
-        Nutrition for several items, e.g. ["2 burger", "1 fries", "3 coke"].
-        Items Edamam can't recognise are skipped and listed under "skipped".
+        Nutrition for `quantity` x `name`. Without a unit it asks for whole
+        servings ("1 serving chicken pasta"), which gives realistic restaurant
+        portions. If Edamam's match doesn't fit the dish, it retries with
+        simpler names and keeps the best fit.
         """
-        print(f"🍽️ Edamam Tool: looking up {len(ingredients)} items")
-        for i, ing in enumerate(ingredients):
-            print(f"   {i+1}. {ing}")
-        
-        # Check cache first
-        cache_key = self._generate_cache_key(ingredients)
-        cached = self._check_cache(cache_key)
-        if cached:
-            return {
-                "source": "cache",
-                "data": cached["data"],
-                "cache_key": cache_key,
-                "status_code": 200
-            }
-        
-        # One request per item, so a dish Edamam can't read only skips
-        # that item instead of failing the whole meal.
-        combined_ingredients = []
-        total_nutrients: Dict[str, Dict[str, Any]] = {}
-        failed = []
+        display_name = display_name or name
+        quantity = quantity or 1
 
-        for ingredient in ingredients:
-            try:
-                response = requests.get(
-                    self.base_url,
-                    params={
-                        "app_id": self.app_id,
-                        "app_key": self.app_key,
-                        "nutrition-type": "logging",
-                        "ingr": ingredient,
-                    },
-                    timeout=20,
-                )
-            except Exception as e:
-                failed.append(f"{ingredient}: {e}")
+        # Names to try, best first, without duplicates
+        simplified = " ".join(_words(display_name))
+        keywords = _words(display_name)
+        candidates = [name, display_name, simplified]
+        if len(keywords) > 2:
+            candidates.append(f"{keywords[0]} {keywords[-1]}")  # e.g. "chicken pasta"
+        seen, names = set(), []
+        for candidate in candidates:
+            candidate = (candidate or "").strip()
+            if candidate and candidate.lower() not in seen:
+                seen.add(candidate.lower())
+                names.append(candidate)
+
+        measure = unit.strip() if unit else "serving"
+        best = None
+        for candidate in names:
+            parsed = self._query(f"{quantity:g} {measure} {candidate}")
+            if not parsed:
                 continue
+            matched = parsed.get("food", "")
+            # How well the match fits: against what we asked for, or the dish
+            score = max(_coverage(candidate, matched), _coverage(display_name, matched))
+            weight = parsed.get("weight", 0) or 0
+            if not unit and weight / quantity < 40:
+                score -= 0.5  # a "serving" under 40 g is not a real portion
+            if best is None or score > best["score"]:
+                best = {"score": score, "parsed": parsed, "query": candidate}
+            if score >= 0.99:
+                break
 
-            print(f"📡 Edamam API Status for '{ingredient}': {response.status_code}")
-            if response.status_code != 200:
-                failed.append(f"{ingredient}: {response.status_code} {response.text[:100]}")
-                continue
+        if not best:
+            return None
 
-            for item in response.json().get("ingredients", []):
-                parsed_items = item.get("parsed") or []
-                if not parsed_items:
-                    failed.append(f"{ingredient}: not recognised")
-                    continue
-                combined_ingredients.append({"text": ingredient, "parsed": parsed_items})
-                for parsed in parsed_items:
-                    for key, nutrient in (parsed.get("nutrients") or {}).items():
-                        total = total_nutrients.setdefault(
-                            key, {"label": nutrient.get("label", key), "quantity": 0, "unit": nutrient.get("unit", "")}
-                        )
-                        total["quantity"] += nutrient.get("quantity", 0) or 0
+        parsed = best["parsed"]
+        nutrients = parsed.get("nutrients") or {}
 
-        if failed:
-            print(f"⚠️ Edamam skipped: {failed}")
+        def amount(key: str) -> float:
+            return (nutrients.get(key) or {}).get("quantity", 0) or 0
 
-        if not combined_ingredients:
-            return {
-                "source": "error",
-                "error": True,
-                "status_code": 422,
-                "message": "Edamam could not recognise any item: " + "; ".join(failed)[:300],
-            }
-
-        result = {
-            "ingredients": combined_ingredients,
-            "totalNutrients": total_nutrients,
-            "totalDaily": {},
-            "skipped": failed,
-        }
-        self._store_in_cache(cache_key, "", result)
+        score = best["score"]
         return {
-            "source": "api",
-            "data": result,
-            "cache_key": cache_key,
-            "status_code": 200,
+            "food": display_name,
+            "matched_as": parsed.get("food", ""),
+            "quantity": quantity,
+            "measure": parsed.get("measure", measure),
+            "weight_g": round(parsed.get("weight", 0) or 0),
+            "calories": amount("ENERC_KCAL"),
+            "protein_g": amount("PROCNT"),
+            "carbs_g": amount("CHOCDF"),
+            "fat_g": amount("FAT"),
+            "confidence": "high" if score >= 0.99 else "medium" if score >= 0.5 else "low",
         }
-
-    def extract_meal_summary(self, api_response: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract nutrition summary for the entire meal"""
-        if api_response.get("error"):
-            return {"error": api_response.get("message")}
-        
-        data = api_response.get("data", {})
-        if not data:
-            return {"error": "No data"}
-        
-        # Get total nutrients for the whole meal
-        total_nutrients = data.get("totalNutrients", {})
-        total_daily = data.get("totalDaily", {})
-        
-        # Helper function to safely get nutrient quantity
-        def get_nutrient(nutrients, key):
-            if key in nutrients:
-                return nutrients[key].get("quantity", 0)
-            return 0
-        
-        # Meal totals (sum of ALL items)
-        meal_summary = {
-            "total": {
-                "calories": get_nutrient(total_nutrients, "ENERC_KCAL"),
-                "protein_g": get_nutrient(total_nutrients, "PROCNT"),
-                "carbs_g": get_nutrient(total_nutrients, "CHOCDF"),
-                "fat_g": get_nutrient(total_nutrients, "FAT"),
-                "fiber_g": get_nutrient(total_nutrients, "FIBTG"),
-                "sugar_g": get_nutrient(total_nutrients, "SUGAR"),
-            },
-            "daily_percentages": {
-                "calories": get_nutrient(total_daily, "ENERC_KCAL"),
-                "protein": get_nutrient(total_daily, "PROCNT"),
-                "carbs": get_nutrient(total_daily, "CHOCDF"),
-                "fat": get_nutrient(total_daily, "FAT"),
-                "fiber": get_nutrient(total_daily, "FIBTG"),
-            }
-        }
-        
-        # Per-item breakdown (individual items)
-        ingredients = data.get("ingredients", [])
-        per_item = []
-        
-        for ingredient in ingredients:
-            parsed_items = ingredient.get("parsed", [])
-            for parsed in parsed_items:
-                nutrients = parsed.get("nutrients", {})
-                
-                per_item.append({
-                    "text": ingredient.get("text", ""),
-                    "food": parsed.get("food", ""),
-                    "quantity": parsed.get("quantity", 0),
-                    "measure": parsed.get("measure", ""),
-                    "weight_g": parsed.get("weight", 0),
-                    "calories": get_nutrient(nutrients, "ENERC_KCAL"),
-                    "protein_g": get_nutrient(nutrients, "PROCNT"),
-                    "carbs_g": get_nutrient(nutrients, "CHOCDF"),
-                    "fat_g": get_nutrient(nutrients, "FAT"),
-                })
-        
-        meal_summary["items"] = per_item
-        meal_summary["source"] = api_response.get("source", "api")
-        
-        return meal_summary

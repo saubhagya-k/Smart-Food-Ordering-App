@@ -21,7 +21,8 @@ class FoodParserAgent:
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY not provided to FoodParserAgent")
             
-        self.model = "models/gemini-2.5-flash-lite"
+        # Override with GEMINI_MODEL in .env if Google retires this model
+        self.model = os.getenv("GEMINI_MODEL", "models/gemini-3.5-flash-lite")
         self.llm = ChatGoogleGenerativeAI(
             model=self.model,
             temperature=0.1,
@@ -54,23 +55,30 @@ class FoodParserAgent:
         
         self._rate_limit()
         
-        system_prompt = """You are a food parser. Return a JSON array of food items.
+        system_prompt = """You turn a food order into a JSON array, one object per item.
 
 Format:
 [
   {
-    "food_name": "item name",
+    "food_name": "the item name exactly as written",
     "quantity": number,
     "unit": "unit or null",
+    "lookup_name": "plain, common English name of the dish for a nutrition database",
     "needs_api": true/false
   }
 ]
 
 Rules:
-- Extract quantity and food name from descriptions like "2 pizza", "3 coke", "1 cake"
-- If description has embedded calories like "292 Kcal/100g", set needs_api=false
+- Read quantities like "2 pizza", "3 coke", "1 cake"; default quantity is 1
+- Items are separated by "and" or commas
+- lookup_name: drop restaurant and marketing words ("mixed", "special",
+  "signature", "loaded", "classic", brand names), keep the main food and its
+  main ingredient. Examples: "Chicken Mixed Sauce Pasta" -> "chicken pasta",
+  "Chicken Zinger Burger" -> "chicken burger", "Coke" -> "cola",
+  "Choco Lava Cake" -> "chocolate lava cake", "Paneer Tikka Pizza" -> "paneer pizza"
+- If the description has embedded calories like "292 Kcal/100g", set needs_api=false
 - Otherwise set needs_api=true
-- Handle multiple items separated by "and" or commas
+- Return only the JSON array
 """
         
         user_prompt = f"Parse this: {description}"
@@ -83,13 +91,18 @@ Rules:
             ])
             
             # Extract JSON array
-            items = self._extract_json_array(response.content)
+            # Newer Gemini models return a list of parts; .text joins them
+            text = getattr(response, "text", None)
+            if not isinstance(text, str):
+                text = response.content if isinstance(response.content, str) else str(response.content)
+            items = self._extract_json_array(text)
             
             # Ensure all items have required fields
             for item in items:
                 item.setdefault("quantity", 1)
                 item.setdefault("unit", None)
                 item.setdefault("needs_api", True)
+                item.setdefault("lookup_name", None)
             
             # Cache result
             self.cache[cache_key] = items
@@ -124,6 +137,7 @@ Rules:
                 "food_name": food_name.strip(),
                 "quantity": quantity,
                 "unit": None,
+                "lookup_name": None,
                 "needs_api": True
             })
         
