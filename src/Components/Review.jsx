@@ -35,6 +35,8 @@ const Review = () => {
       if (response.ok) {
         setSubmitted(true)
         console.log('Review saved:', data)
+      } else if (response.status === 401) {
+        setError('Please log in to post a review.')
       } else {
         setError(data.error || 'Failed to submit review')
       }

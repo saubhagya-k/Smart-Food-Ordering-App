@@ -26,10 +26,14 @@ body("password").isLength({ min: 5 }),
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        message: "Please enter a valid email and a password of at least 5 characters.",
+        errors: errors.array(),
+      });
     }
 
-    const { email, password } = req.body;
+    const email = req.body.email.trim().toLowerCase(); // stored in lowercase
+    const { password } = req.body;
 
     const user = await userModel.findOne({ email });
     if (!user) {
