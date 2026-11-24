@@ -1,69 +1,33 @@
 import React, { useEffect, useState, useRef } from 'react';
-import RestCard from './RestCard';  
-import RestCardTop from './RestCardTop';   
+import RestCard from './RestCard';
+import RestCardTop from './RestCardTop';
 import { mockPagination } from '../../Utils/mockPagination';
-import { API_URL } from './../../Utils/api'; 
+import { imageGridCards } from '../../Utils/foodata';
+import { API_URL } from './../../Utils/api';
+
+// Saved restaurant pages for infinite scroll. filter(Boolean) skips any empty
+// slot, e.g. from a stray comma in the array ("},\n,\n{" leaves a hole).
+const PAGES = mockPagination.filter((p) => p?.restaurants?.length);
 
 export default function Restaurent() {
-  const [RestData, setRestData] = useState([]);
-  const [restaurants, setRestaurants] = useState([]);             // List shown on UI
-  const [page, setPage] = useState(0);                            // Start exactly at index 0 
-
-  const [RestDataTop, setRestDataTop] = useState([]);
+  const [RestData, setRestData] = useState([]);        // live restaurants from Swiggy
+  const [RestDataTop, setRestDataTop] = useState([]);  // "What's on your mind?" row
+  const [liveStatus, setLiveStatus] = useState("loading"); // "loading" | "done" | "failed"
+  const [pagesLoaded, setPagesLoaded] = useState(1);   // how many saved pages are shown
   const loaderRef = useRef(null);
 
-  // 1. CRUCIAL FIX: Initialize with index 0 data immediately when component mounts
-  useEffect(() => {
-    if (mockPagination && mockPagination.length > 0) {
-      setRestaurants(mockPagination[0].restaurants || []);
-    }
-  }, []);
+  const hasMore = pagesLoaded < PAGES.length;
 
-  // 2. CRUCIAL FIX: Append data when scrolling changes the page index
-  useEffect(() => {
-    // Skip if it's the very first page because we already loaded it above
-    if (page === 0) return; 
-
-    const pageData = mockPagination[page];
-    if (!pageData?.restaurants) return;
-
-    // Append new batch cleanly to existing list
-    setRestaurants(prev => [...prev, ...pageData.restaurants]);
-  }, [page]);
-
-  // 3. Infinite scrolling intersection observer setup
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          // Move to the next index in our mock list
-          setPage(prev =>
-            prev < mockPagination.length - 1 ? prev + 1 : prev
-          );
-        }
-      },
-      { rootMargin: "200px" } // Triggers 200px before reaching the bottom
-    );
-
-    const node = loaderRef.current;
-    if (node) observer.observe(node);
-
-    return () => observer.disconnect();
-  }, []);
-
-  // ... rest of your fetchData useEffect remains exactly the same
-
-
-  // 🛠️ FIX: Wrapped fetchData inside a proper useEffect hook so it actually fires!
+  // Live list from Swiggy (through our backend). If Swiggy refuses, we still
+  // show the saved pages instead of "loading" forever.
   useEffect(() => {
     async function fetchData() {
       const localProxyAPI = `${API_URL}/api/swiggy/dapi/restaurants/list/v5?lat=25.5943&lng=85.1352&is-seo-homepage-enabled=true`;
 
       try {
-        const response = await fetch(localProxyAPI);  
+        const response = await fetch(localProxyAPI);
         const data = await response.json();
 
-        // Safely map the Swiggy API payload cards
         const targetCard = data?.data?.cards?.find(
           (c) => c?.card?.card?.gridElements?.infoWithStyle?.restaurants
         );
@@ -73,17 +37,44 @@ export default function Restaurent() {
 
         setRestData(targetCard?.card?.card?.gridElements?.infoWithStyle?.restaurants || []);
         setRestDataTop(topBannerCard?.card?.card?.imageGridCards?.info || []);
-
+        setLiveStatus("done");
       } catch (err) {
         console.warn("Error fetching data:", err);
+        setLiveStatus("failed");
       }
     }
 
     fetchData();
-  }, []); // Fires exactly once when the component mounts
+  }, []);
 
-  // 4. Loading State Check
-  if (!RestData || RestData.length === 0 || !RestDataTop || RestDataTop.length === 0) {
+  // Infinite scroll: when the "loading more" box at the bottom comes near the
+  // screen, show the next saved page.
+  //
+  // This effect re-runs when the box first appears (liveStatus changes) and
+  // after every page (pagesLoaded changes). That matters because:
+  //  - on the first render the box isn't on the page yet (we show the loading
+  //    message instead), so loaderRef.current is null and nothing is observed;
+  //  - an IntersectionObserver only fires when visibility CHANGES. If the box
+  //    is still on screen after a page is added, it never fires again.
+  //    A fresh observer always reports once, so the next page loads.
+  useEffect(() => {
+    const node = loaderRef.current;
+    if (!node || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPagesLoaded((n) => Math.min(n + 1, PAGES.length));
+        }
+      },
+      { rootMargin: "200px" } // start loading 200px before the bottom
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [liveStatus, pagesLoaded, hasMore]);
+
+  if (liveStatus === "loading") {
     return (
       <h1 className="h-full text-2xl md:text-5xl flex justify-center items-center mt-32 md:mt-60 px-4 text-center">
         Data is Loading....
@@ -91,14 +82,18 @@ export default function Restaurent() {
     );
   }
 
-  // 5. Combine and remove duplicates by restaurant ID
+  // Live restaurants first, then the saved pages, without duplicates
+  const savedRestaurants = PAGES.slice(0, pagesLoaded).flatMap((p) => p.restaurants);
   const allRestaurants = Array.from(
     new Map(
-      [...RestData, ...restaurants]
+      [...RestData, ...savedRestaurants]
         .filter(r => r?.info?.id)
         .map(r => [r.info.id, r])
     ).values()
   );
+
+  // Use the saved food categories if Swiggy didn't send any
+  const topCards = RestDataTop.length ? RestDataTop : imageGridCards;
 
   return (
     <>
@@ -106,15 +101,15 @@ export default function Restaurent() {
       <h1 className="max-w-7xl mx-auto px-4 font-bold text-xl md:text-2xl mt-5">
         What's on your mind?
       </h1>
-      
+
       <div className="flex overflow-x-auto gap-4 md:gap-6 max-w-7xl mx-auto px-4 scrollbar-hide">
-        {RestDataTop.map((restInfoTop) => (
+        {topCards.map((restInfoTop) => (
           <div key={restInfoTop.id} className="shrink-0">
             <RestCardTop restInfoTop={restInfoTop} />
           </div>
         ))}
       </div>
-      
+
       {/* Restaurant Grid */}
       <h1 className="max-w-7xl mx-auto px-4 font-bold text-xl md:text-2xl mt-10 md:mt-20">
         Restaurants with online food delivery in Patna
@@ -130,10 +125,8 @@ export default function Restaurent() {
       </div>
 
       {/* Infinite Scroll Anchor Trigger */}
-      <div ref={loaderRef} className="h-20 flex justify-center items-center mt-10">
-        {page < mockPagination.length - 1 
-          ? "Loading more restaurants..."
-          : "No more restaurants"}
+      <div ref={loaderRef} className="h-20 flex justify-center items-center mt-10 text-gray-500">
+        {hasMore ? "Loading more restaurants..." : `That's all ${allRestaurants.length} restaurants`}
       </div>
     </>
   );
