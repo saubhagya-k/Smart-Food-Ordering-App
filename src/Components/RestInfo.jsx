@@ -67,30 +67,29 @@ export default function RestInfo({restData,setCartCount,cartItems,setCartItems})
 
     return (
          <>
-        <div className="flex w-full justify-between mb-2 pb-2">
-          <div className="w-[70%]">
-            <p className="text-2xl text-gray-700 font-semibold mb-1">{restData?.name}</p>
-            <p className="text-xl">{"₹"+ ("defaultPrice" in restData ? restData?.defaultPrice/100:restData?.price/100)}</p>
+        {/* Text takes the remaining width; the picture keeps a fixed, phone-friendly size */}
+        <div className="flex w-full justify-between gap-4 mb-2 pb-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-lg md:text-2xl text-gray-700 font-semibold mb-1">{restData?.name}</p>
+            <p className="text-base md:text-xl">{"₹"+ ("defaultPrice" in restData ? restData?.defaultPrice/100:restData?.price/100)}</p>
             <span className="text-green-700">{restData?.ratings?.aggregatedRating?.rating}</span>
             <span>{"("+restData?.ratings?.aggregatedRating?.ratingCountV2+")"}</span>
-            <p>
+            <p className="text-sm md:text-base text-gray-600 line-clamp-3 md:line-clamp-none">
                 {restData?.description}
-            </p>    
+            </p>
           </div>
-          <div className="w-[20%] relative">
-            <img className="w-full h-36 object-cover rounded-3xl" src={restData.imageId ? "https://media-assets.swiggy.com/swiggy/image/upload/" + restData.imageId : ""}></img>
+          <div className="relative shrink-0 w-28 sm:w-36 md:w-40">
+            <img className="w-full h-28 sm:h-36 object-cover rounded-2xl md:rounded-3xl bg-gray-100" alt={restData?.name || ""} src={restData.imageId ? "https://media-assets.swiggy.com/swiggy/image/upload/" + restData.imageId : ""}></img>
+            {/* Centred under the picture, overlapping its bottom edge */}
             {
-              (count == 0)?(<button className="absolute bottom-1 left-20 rounded-xl text-2xl text-green-600 px-6 py-2 shadow-md border border-white bg-white" onClick={adding}>ADD</button>):(
-                <div className="absolute bottom-1 left-20 rounded-xl text-2xl text-green-600 px-6 py-2 shadow-md border border-white bg-white ">
-                <button className="pr-4" onClick={decrement}>-</button>
-                <span>{count}</span>
-                <button className="pl-4" onClick={increment}>+</button>
+              (count == 0)?(<button className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-xl text-base md:text-xl font-semibold text-green-600 px-5 md:px-6 py-1.5 md:py-2 shadow-md border border-gray-100 bg-white" onClick={adding}>ADD</button>):(
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-center rounded-xl text-base md:text-xl font-semibold text-green-600 px-3 md:px-4 py-1.5 md:py-2 shadow-md border border-gray-100 bg-white whitespace-nowrap">
+                <button className="px-2" onClick={decrement}>-</button>
+                <span className="px-1">{count}</span>
+                <button className="px-2" onClick={increment}>+</button>
                 </div>
-
               )
             }
-
-           
           </div>
         </div>
         <hr className="mb-6 mt-2"></hr>

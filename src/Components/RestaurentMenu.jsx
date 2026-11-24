@@ -51,27 +51,27 @@ export default function RestaurantMenu({ setCartCount, cartItems, setCartItems }
     console.log("Filtered Menu Data:", RestData);
 
     return (
-      <div className="w-[80%] container mx-auto mt-20 mb-20">
+      <div className="max-w-4xl mx-auto px-4 mt-6 md:mt-12 mb-20">
         <Link to={`/city/chennai/${id}/search`}>
-          <p className="w-full text-center py-4 rounded-4xl bg-gray-200 text-2xl">Search for Dishes</p>
+          <p className="w-full text-center py-3 md:py-4 rounded-4xl bg-gray-200 text-lg md:text-2xl">Search for Dishes</p>
         </Link>
            
-        <div className="w-[80%] container mx-auto mt-10">
+        <div className="mt-6 md:mt-10 flex gap-3">
           <button 
-            className={`text-2xl py-2 px-8 mr-4 border rounded-2xl ${selected === 'Veg' ? "bg-green-600 text-white" : "bg-gray-300"}`} 
+            className={`text-base md:text-xl py-2 px-6 md:px-8 border rounded-2xl ${selected === 'Veg' ? "bg-green-600 text-white" : "bg-gray-300"}`} 
             onClick={() => setSelected(selected === 'Veg' ? null : 'Veg')}
           >
             Veg
           </button>
           <button 
-            className={`text-2xl py-2 px-4 border rounded-2xl ${selected === 'Non Veg' ? "bg-red-600 text-white" : "bg-gray-300"}`} 
+            className={`text-base md:text-xl py-2 px-4 md:px-6 border rounded-2xl ${selected === 'Non Veg' ? "bg-red-600 text-white" : "bg-gray-300"}`} 
             onClick={() => setSelected(selected === 'Non Veg' ? null : 'Non Veg')}
           >
             Non Veg
           </button>
         </div>
 
-        <div className="w-[80%] mx-auto mt-20">
+        <div className="mt-8 md:mt-12">
           {RestData.map((menuItems) => (
             <MenuCard 
               key={menuItems?.card?.card?.title} 

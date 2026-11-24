@@ -35,8 +35,8 @@ export default function SearchFood(){
 
 
     return(
-        <div className="w-[80%] mx-auto mt-20">
-            <input className="w-full pl-10 py-4 text-2xl bg-gray-200 rounded-2xl border"  placeholder="Search here" onChange={(e)=>setFood(e.target.value)}></input>
+        <div className="max-w-4xl mx-auto px-4 mt-8 md:mt-20">
+            <input className="w-full px-4 md:pl-10 py-3 md:py-4 text-lg md:text-2xl bg-gray-200 rounded-2xl border"  placeholder="Search here" onChange={(e)=>setFood(e.target.value)}></input>
         </div>
     )
 }

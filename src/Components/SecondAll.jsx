@@ -6,7 +6,7 @@ import { FiSearch, FiHelpCircle, FiUser, FiShoppingCart } from "react-icons/fi";
 const SecondAll = ({cartCount}) => {
   return (
     <nav className="w-full bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
 
         {/* Left Section */}
         <div className="flex items-center gap-6">
@@ -21,18 +21,18 @@ const SecondAll = ({cartCount}) => {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-8 text-gray-700 font-medium">
+        <div className="flex items-center gap-5 lg:gap-8 text-gray-700 font-medium">
 
-          <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500">
+          <div className="hidden lg:flex items-center gap-2 cursor-pointer hover:text-orange-500">
             <span>Swiggy Corporate</span>
           </div>
 
           <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500">
             <FiSearch size={18} />
-            <span>Search</span>
+            <span className="hidden md:inline">Search</span>
           </div>
 
-          <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500">
+          <div className="hidden lg:flex items-center gap-2 cursor-pointer hover:text-orange-500">
             <span className="relative">
               Offers
               <span className="absolute -top-2 -right-6 text-xs text-orange-500 font-semibold">
@@ -41,19 +41,19 @@ const SecondAll = ({cartCount}) => {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500">
+          <div className="hidden md:flex items-center gap-2 cursor-pointer hover:text-orange-500">
             <FiHelpCircle size={18} />
             <span>Help</span>
           </div>
 
           <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500">
             <FiUser size={18} />
-            <span>Sign In</span>
+            <span className="hidden md:inline">Sign In</span>
           </div>
 
           <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500">
             <FiShoppingCart size={18} />
-            <span>Cart</span>
+            <span className="hidden md:inline">Cart</span>
             <span className="ml-1 bg-gray-200 px-2 py-0.5 rounded-full text-sm">
               {cartCount}
             </span>

@@ -5,22 +5,14 @@ import {dineoutRestaurants} from '../../Utils/hotels'
 
 export default function Dinein(){
     return(
-        <>
-        <div>
-            <p className=" text-2xl font-bold relative mt-30 ml-45">Discover best restaurants on Dineout</p>
-        </div>
-        <div>
-        <div className="flex container mx-auto   flex-nowrap overflow-x-auto mt-15 max-w-[80%]">{
-            
-            dineoutRestaurants.map((hotelfood)=>(<Dineincard key={hotelfood?.info.id} hotelfood={hotelfood} ></Dineincard>))
+        <section className="max-w-7xl mx-auto px-4 mt-10 md:mt-16 mb-10">
+            <p className="text-xl md:text-2xl font-bold">Discover best restaurants on Dineout</p>
 
+            {/* One swipeable row on every screen size */}
+            <div className="flex flex-nowrap overflow-x-auto gap-4 mt-4 md:mt-6 pb-2">{
+                dineoutRestaurants.map((hotelfood)=>(<Dineincard key={hotelfood?.info.id} hotelfood={hotelfood} ></Dineincard>))
             }
-
-            
-            
-            
-        </div>
-        </div>
-        </>
+            </div>
+        </section>
     )
 }

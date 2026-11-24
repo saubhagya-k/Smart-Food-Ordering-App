@@ -21,14 +21,14 @@ export default function RestCard({ restInfo }) {
         <div className="relative overflow-hidden ">
          
             <img
-      className="w-70 h-45 object-cover relative  rounded-xl  mt-10"
+      className="w-full h-48 sm:h-44 object-cover relative rounded-xl mt-6"
       src={`https://media-assets.swiggy.com/swiggy/image/upload/${restInfo.info.cloudinaryImageId}`}
       alt={restInfo?.info?.name}/>
 
      
        
     
-    <div className=" absolute  gap-2 flex rounded-xl text-2xl font-bold text-[#ffffffeb]   border-amber-700 bg-gradient-to-t h-12 from-black left-0 right-0 bottom-0 "> 
+    <div className=" absolute  gap-2 flex rounded-xl text-lg sm:text-xl font-bold text-[#ffffffeb] items-end pb-1   border-amber-700 bg-gradient-to-t h-12 from-black left-0 right-0 bottom-0 "> 
         <p className="bottom-1.5 ml-4">{restInfo?.info?.aggregatedDiscountInfoV3?.header}</p>
       
        <p className="bottom-1.5"> {restInfo?.info?.aggregatedDiscountInfoV3?.subHeader}</p>
@@ -38,7 +38,7 @@ export default function RestCard({ restInfo }) {
     
         </div>
    
-    <div className="  text-[18px] font-bold mt-3 truncate max-w-[200px]" >
+    <div className="text-[18px] font-bold mt-3 truncate" >
         {restInfo?.info?.name}
     </div> 
     <div className=" flex gap-1.5 text-[16px] ">
@@ -53,7 +53,7 @@ export default function RestCard({ restInfo }) {
        <p className=""> {restInfo?.info?.avgRating}.</p>
        <p className=" font-bold "> {restInfo?.info?.sla?.slaString}</p>
     </div>
-    <div className=" text-[16px]  text-[#02060c99]  flx-wrap   line-clamp-2 max-w-[200px]">
+    <div className="text-[16px] text-[#02060c99] line-clamp-2">
        <p> {restInfo?.info?.cuisines.join(", ")}</p>
     </div>
     </div> 

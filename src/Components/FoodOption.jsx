@@ -4,40 +4,24 @@ import React from 'react'
 import {imageGrid} from "../../Utils/itm"
 import Mal from "./Mal"
 
-
+// Phone-first: cards wrap into a grid that gains columns as the screen widens.
 export default function FoodOption(){
     return(
-
         <>
-
-        <div className="w-[80%] container mx-auto flex  flex-wrap mt-20 gp-3">{
+        <div className="max-w-7xl mx-auto px-4 mt-8 md:mt-16 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">{
             imageGridCards.map((foodData)=><Foodcard key={foodData.id} foodData={foodData}></Foodcard>)
-            
-            }
-            
-            </div>
+        }
+        </div>
 
-            <div>
+        <section className="max-w-7xl mx-auto px-4 mt-10 md:mt-16">
+            <h1 className="text-xl md:text-2xl font-bold">Shop groceries on Instamart</h1>
 
-                <h1 className="text-2xl font-bold relative mt-30 ml-45">Shop groceries on Instamart</h1>
-
-            
-            
-            <div className=" w-[80%] container mx-auto flex  flex-nowrap overflow-x-auto mt-15 gp-2 ">{
-            imageGrid.map((foodMal)=><Mal key={foodMal.id} foodMal={foodMal}></Mal>)
-            
+            {/* One swipeable row on every screen size */}
+            <div className="flex flex-nowrap overflow-x-auto gap-4 mt-4 md:mt-6 pb-2">{
+                imageGrid.map((foodMal)=><Mal key={foodMal.id} foodMal={foodMal}></Mal>)
             }
             </div>
-       
-            </div>
-
-            
-
-        
-        
-        
+        </section>
         </>
-        
-        
     )
 }

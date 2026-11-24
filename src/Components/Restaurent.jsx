@@ -85,7 +85,7 @@ export default function Restaurent() {
   // 4. Loading State Check
   if (!RestData || RestData.length === 0 || !RestDataTop || RestDataTop.length === 0) {
     return (
-      <h1 className="h-full text-5xl flex justify-center items-center mt-60">
+      <h1 className="h-full text-2xl md:text-5xl flex justify-center items-center mt-32 md:mt-60 px-4 text-center">
         Data is Loading....
       </h1>
     );
@@ -103,11 +103,11 @@ export default function Restaurent() {
   return (
     <>
       {/* Top Banner Row */}
-      <h1 className="mx-auto max-w-[80%] font-bold text-2xl mt-5 mr-28">
+      <h1 className="max-w-7xl mx-auto px-4 font-bold text-xl md:text-2xl mt-5">
         What's on your mind?
       </h1>
       
-      <div className="flex overflow-x-auto gap-6 max-w-[80%] mx-auto scrollbar-hide">
+      <div className="flex overflow-x-auto gap-4 md:gap-6 max-w-7xl mx-auto px-4 scrollbar-hide">
         {RestDataTop.map((restInfoTop) => (
           <div key={restInfoTop.id} className="shrink-0">
             <RestCardTop restInfoTop={restInfoTop} />
@@ -116,12 +116,13 @@ export default function Restaurent() {
       </div>
       
       {/* Restaurant Grid */}
-      <h1 className="mx-auto max-w-[80%] font-bold text-2xl mt-20 mr-28">
+      <h1 className="max-w-7xl mx-auto px-4 font-bold text-xl md:text-2xl mt-10 md:mt-20">
         Restaurants with online food delivery in Patna
       </h1>
 
-      <div className="w-[80%] container mx-auto">
-        <div className="flex flex-wrap gap-10 justify-center">
+      {/* 1 column on phones, more as the screen widens */}
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4">
           {allRestaurants.map(restInfo => (
             <RestCard key={restInfo.info.id} restInfo={restInfo} />
           ))}

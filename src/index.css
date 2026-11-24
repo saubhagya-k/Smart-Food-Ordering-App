@@ -2,3 +2,14 @@
 
 @import "slick-carousel/slick/slick.css";
 @import "slick-carousel/slick/slick-theme.css";
+
+/* The design is light-only (Swiggy images have dark text on transparent
+   backgrounds), so don't let a phone in dark mode paint the page black. */
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #ffffff;
+  color: #111827;
+}
