@@ -1,6 +1,7 @@
 import { useState } from "react";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
+import Logo from "./Logo";
 
 export default function LoginModal({ show, onLoggedIn, onGuest, guestMinutes = 15, guestExpired = false }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,14 +11,18 @@ export default function LoginModal({ show, onLoggedIn, onGuest, guestMinutes = 1
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center  z-[9999]">
-      <div className="bg-white p-6 rounded-xl w-96">
-        <h2 className="text-xl font-bold mb-4">
-          {isLogin ? "Login" : "Sign Up"}
+    <div className="fixed inset-0 bg-ink/50 backdrop-blur-[2px] flex items-center justify-center p-4 z-[9999]">
+      <div className="bg-white p-6 md:p-7 rounded-3xl w-full max-w-sm shadow-xl">
+        <Logo />
+        <h2 className="mt-5 font-display text-3xl text-ink">
+          {isLogin ? "Welcome back" : "Create your account"}
         </h2>
+        <p className="mt-1 mb-5 text-sm text-stone-warm">
+          {isLogin ? "Log in to order and keep your history." : "It takes less than a minute."}
+        </p>
 
         {guestExpired && (
-          <p className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+          <p className="mb-4 rounded-xl bg-paprika-50 border border-paprika-200 p-3 text-sm text-paprika-800">
             Your {guestMinutes}-minute guest preview has ended. Log in or sign up to keep going.
           </p>
         )}
@@ -40,22 +45,22 @@ export default function LoginModal({ show, onLoggedIn, onGuest, guestMinutes = 1
         )}
 
         <button
-          className="mt-4 text-blue-600 text-sm"
+          className="mt-4 text-paprika-700 font-semibold text-sm"
           onClick={() => setIsLogin(!isLogin)}
         >
           {isLogin ? "Create an account" : "Already have an account?"}
         </button>
 
         {/* For visitors (e.g. recruiters) who just want to look around */}
-        <div className="mt-5 border-t pt-4">
+        <div className="mt-5 border-t border-line pt-4">
           <button
             type="button"
             onClick={onGuest}
-            className="w-full rounded border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="w-full rounded-xl border border-line py-2.5 text-sm font-semibold text-ink hover:bg-cream"
           >
             Continue as guest ({guestMinutes} min)
           </button>
-          <p className="mt-1 text-center text-xs text-gray-500">
+          <p className="mt-1.5 text-center text-xs text-stone-warm">
             Browse without an account. Login is needed for reviews.
           </p>
         </div>

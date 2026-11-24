@@ -1,31 +1,20 @@
 import React from 'react'
+import NavBar from './NavBar'
 import Header from './Header'
 import FoodOption from './FoodOption'
 import Dinein from './Dinein'
-
 import ReviewCarousel from './ReviewCarousel'
-// import RestaurantReviews from './RestaurantReviews';
+import Footer from './Footer'
 
-
-
-export default function Home({user,setUser,setShowLogin}){
-
+export default function Home({ user, setUser, setShowLogin, cartCount }){
     return(
         <>
-        <Header user={user}
-        setUser={setUser}
-        setShowLogin={setShowLogin}/>
-
-         {/* <RestaurantReviews restaurantId="YOUR_RESTAURANT_ID" /> */}
-       
-          <FoodOption></FoodOption>
-          <Dinein></Dinein>
-
-
-          <ReviewCarousel/>
-
-
+          <NavBar user={user} setUser={setUser} setShowLogin={setShowLogin} cartCount={cartCount} />
+          <Header />
+          <FoodOption />
+          <Dinein />
+          <ReviewCarousel />
+          <Footer />
         </>
     )
-
 }

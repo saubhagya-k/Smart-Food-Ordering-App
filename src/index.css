@@ -3,7 +3,41 @@
 @import "slick-carousel/slick/slick.css";
 @import "slick-carousel/slick/slick-theme.css";
 
-/* The design is light-only (Swiggy images have dark text on transparent
+/*
+  Eat Stack design tokens.
+  - paprika: the brand colour. An earthy red-orange (appetite) that is
+    clearly not a delivery-app bright orange or pink-red.
+  - basil: fresh green for veg, ratings and success.
+  - ink / stone: warm charcoal text and greys.
+  - cream: soft surface for sections, on a white page.
+  Use them as normal Tailwind classes: bg-paprika-600, text-ink, bg-cream…
+*/
+@theme {
+  --color-paprika-50: #fdf4ef;
+  --color-paprika-100: #fbe4d6;
+  --color-paprika-200: #f5c3a6;
+  --color-paprika-300: #ec9a6f;
+  --color-paprika-500: #d9561c;
+  --color-paprika-600: #c2410c;
+  --color-paprika-700: #9a340a;
+  --color-paprika-800: #7a2b0b;
+
+  --color-basil-50: #eef6f1;
+  --color-basil-100: #d5eadd;
+  --color-basil-500: #2f8155;
+  --color-basil-600: #256b46;
+  --color-basil-700: #1d5438;
+
+  --color-ink: #1f1a17;
+  --color-stone-warm: #6b625b;
+  --color-line: #ece6df;
+  --color-cream: #faf6f0;
+
+  --font-display: "DM Serif Display", Georgia, serif;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* The design is light-only (food images have dark text on transparent
    backgrounds), so don't let a phone in dark mode paint the page black. */
 :root {
   color-scheme: light;
@@ -11,5 +45,30 @@
 
 body {
   background-color: #ffffff;
-  color: #111827;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Very faint paper grain for cream sections. Pure CSS/SVG, no image file. */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Hide scrollbars on swipe rows but keep them scrollable */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

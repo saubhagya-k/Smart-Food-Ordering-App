@@ -1,66 +1,46 @@
-
 import React from 'react'
+import { Link } from "react-router-dom";
+import { FiStar, FiClock } from "react-icons/fi";
 
-import {Link} from "react-router-dom";
-
-
-  //bg-gradient-to-t h-12 from-black left-0 right-0 bottom-0
-  
-
+// One restaurant in the list
 export default function RestCard({ restInfo }) {
+  const info = restInfo?.info || {};
+  const offer = [info?.aggregatedDiscountInfoV3?.header, info?.aggregatedDiscountInfoV3?.subHeader]
+    .filter(Boolean)
+    .join(" ");
+
   return (
+    <Link to={"/city/chennai/" + info.id} className="group block">
+      <div className="relative overflow-hidden rounded-2xl bg-cream">
+        <img
+          className="w-full h-48 sm:h-44 object-cover transition duration-300 group-hover:scale-[1.03]"
+          loading="lazy"
+          src={`https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_600/${info.cloudinaryImageId}`}
+          alt={info.name}
+        />
+        {offer && (
+          <span className="absolute left-3 bottom-3 bg-white text-paprika-700 text-xs font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm">
+            {offer}
+          </span>
+        )}
+      </div>
 
-
-    <Link to={"/city/chennai/"+restInfo?.info?.id}>
-    
-    
-
-    <div className="transform transition hover:scale-95  duration-100  " >
-    
-      
-        <div className="relative overflow-hidden ">
-         
-            <img
-      className="w-full h-48 sm:h-44 object-cover relative rounded-xl mt-6"
-      src={`https://media-assets.swiggy.com/swiggy/image/upload/${restInfo.info.cloudinaryImageId}`}
-      alt={restInfo?.info?.name}/>
-
-     
-       
-    
-    <div className=" absolute  gap-2 flex rounded-xl text-lg sm:text-xl font-bold text-[#ffffffeb] items-end pb-1   border-amber-700 bg-gradient-to-t h-12 from-black left-0 right-0 bottom-0 "> 
-        <p className="bottom-1.5 ml-4">{restInfo?.info?.aggregatedDiscountInfoV3?.header}</p>
-      
-       <p className="bottom-1.5"> {restInfo?.info?.aggregatedDiscountInfoV3?.subHeader}</p>
-
-    </div>
-   
-    
+      <div className="mt-3 px-0.5">
+        <p className="text-base font-bold text-ink truncate group-hover:text-paprika-700">{info.name}</p>
+        <div className="mt-1 flex items-center gap-3 text-sm text-ink">
+          {info.avgRating && (
+            <span className="flex items-center gap-1 bg-basil-50 text-basil-700 font-bold px-1.5 py-0.5 rounded-md">
+              <FiStar size={12} className="fill-basil-500 text-basil-500" /> {info.avgRating}
+            </span>
+          )}
+          {info?.sla?.slaString && (
+            <span className="flex items-center gap-1 text-stone-warm">
+              <FiClock size={13} /> {info.sla.slaString}
+            </span>
+          )}
         </div>
-   
-    <div className="text-[18px] font-bold mt-3 truncate" >
-        {restInfo?.info?.name}
-    </div> 
-    <div className=" flex gap-1.5 text-[16px] ">
-        <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-         fill="currentColor"
-         className="w-6 h-6 fill-green-500"
->
-  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.174c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.538 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.783.57-1.838-.196-1.538-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.174a1 1 0 00.95-.69l1.287-3.967z" />
-</svg>
-       <p className=""> {restInfo?.info?.avgRating}.</p>
-       <p className=" font-bold "> {restInfo?.info?.sla?.slaString}</p>
-    </div>
-    <div className="text-[16px] text-[#02060c99] line-clamp-2">
-       <p> {restInfo?.info?.cuisines.join(", ")}</p>
-    </div>
-    </div> 
-
+        <p className="mt-1 text-sm text-stone-warm line-clamp-1">{(info.cuisines || []).join(", ")}</p>
+      </div>
     </Link>
- 
-    
   );
 }
-

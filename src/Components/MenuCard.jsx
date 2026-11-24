@@ -1,85 +1,51 @@
 import { useState } from "react"
+import { FiChevronDown } from "react-icons/fi"
 import RestInfo from "./RestInfo"
 
-
-export default function MenuCard({menuItems,foodselected,setCartCount,cartItems,setCartItems }){
-
+// One menu section (e.g. "Recommended"), collapsible. Sections can also
+// contain sub-sections ("categories"), which render as nested MenuCards.
+export default function MenuCard({ menuItems, foodselected, setCartCount, cartItems, setCartItems, restaurant }) {
     const [isOpen, setIsOpen] = useState(true);
-    
-    if("categories" in menuItems){
-        return(
-            <div className="w-full">
-            <p className="text-xl md:text-2xl font-bold">{menuItems.title}</p>
-            <div>
-                {
-                    menuItems?.categories?.map((items)=> <MenuCard key={items?.title} menuItems={items} foodselected={foodselected} setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems}></MenuCard>)
-                }
-            </div>
-            </div>
-        )
-    }
+    const shared = { setCartCount, cartItems, setCartItems, restaurant };
 
-   
-    if(!isOpen){
-        return(
-        <div className="w-full">
-            <div className="flex justify-between w-full">
-            <p className="text-xl md:text-3xl font-bold mb-4">{menuItems.title}</p>
-            <button aria-label="Show or hide section" className="text-3xl md:text-5xl font-bold px-2 md:mr-8" onClick={()=>setIsOpen(!isOpen)}>{isOpen?'^':'⌄'}</button>
-            </div>
-            <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
-        </div>   
-        ) 
-    }
-
-    if(foodselected === "Veg"){
-        return(
-            <div className="w-full">
-            <div className="flex justify-between w-full">
-            <p className="text-xl md:text-3xl font-bold mb-4">{menuItems.title}</p>
-            <button aria-label="Show or hide section" className="text-3xl md:text-5xl font-bold px-2 md:mr-8" onClick={()=>setIsOpen(!isOpen)}>{isOpen?'^':'˯'}</button>
-            </div>
-            <div>
-                {
-                    menuItems?.itemCards?.filter( (food) => food?.card?.info?.isVeg === 1).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems}></RestInfo>)
-                }
-            </div>
-            <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
-        </div>
-
-        )
-    }
-    if(foodselected === "Non Veg"){
+    if ("categories" in menuItems) {
         return (
-             <div className="w-full">
-            <div className="flex justify-between w-full">
-            <p className="text-xl md:text-3xl font-bold mb-4">{menuItems.title}</p>
-            <button aria-label="Show or hide section" className="text-3xl md:text-5xl font-bold px-2 md:mr-8" onClick={()=>setIsOpen(!isOpen)}>{isOpen?'^':'˯'}</button>
-            </div>
-            <div>
-                {
-                    menuItems?.itemCards?.filter( (food) => !(food?.card?.info?.isVeg) ).map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems} ></RestInfo>)
-                }
-            </div>
-            <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
-        </div>
-
+            <section className="w-full mb-6">
+                <h3 className="font-display text-2xl md:text-3xl text-ink mb-2">{menuItems.title}</h3>
+                {menuItems?.categories?.map((items) => (
+                    <MenuCard key={items?.title} menuItems={items} foodselected={foodselected} {...shared} />
+                ))}
+            </section>
         )
     }
-    
+
+    const items = (menuItems?.itemCards || []).filter((food) => {
+        const isVeg = food?.card?.info?.isVeg === 1;
+        if (foodselected === "Veg") return isVeg;
+        if (foodselected === "Non Veg") return !isVeg;
+        return true;
+    });
 
     return (
-        <div className="w-full">
-            <div className="flex justify-between w-full">
-            <p className="text-xl md:text-3xl font-bold mb-4">{menuItems.title}</p>
-            <button aria-label="Show or hide section" className="text-3xl md:text-5xl font-bold px-2 md:mr-8" onClick={()=>setIsOpen(!isOpen)}>{isOpen?'^':'˯'}</button>
-            </div>
-            <div>
-                {
-                    menuItems?.itemCards?.map((items)=><RestInfo key={items?.card?.info?.id} restData = {items?.card?.info} setCartCount={setCartCount}  cartItems={cartItems} setCartItems={setCartItems}></RestInfo>)
-                }
-            </div>
-            <div className="h-5 bg-gray-200 mt-2 mb-2"></div>
-        </div>
+        <section className="w-full border-b border-line pb-2 mb-6">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
+                className="w-full flex items-center justify-between py-3 text-left"
+            >
+                <span className="font-display text-2xl md:text-3xl text-ink">
+                    {menuItems.title} <span className="font-sans text-base text-stone-warm">({items.length})</span>
+                </span>
+                <FiChevronDown size={24} className={`text-stone-warm transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {isOpen && (
+                <div className="mt-2">
+                    {items.map((item) => (
+                        <RestInfo key={item?.card?.info?.id} restData={item?.card?.info} {...shared} />
+                    ))}
+                </div>
+            )}
+        </section>
     )
 }

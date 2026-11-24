@@ -143,28 +143,20 @@ function App() {
       <Routes>
         <Route path="/" element={<Home user={user}
         setUser={setUser}
-        setShowLogin={setShowLogin}/>} />
+        setShowLogin={setShowLogin}
+        cartCount={cartCount}/>} />
 
-        <Route element={<SecondHeader cartCount = {cartCount}/>}>
-        <Route path="/restaurent" element={<Restaurent/>} />
-       
-        <Route path="/city/chennai/:id" element={<RestaurentMenu setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems} />} />
-        <Route path="/city/chennai/:id/search" element={<SearchFood />} />
+        {/* Every other page shares the top bar */}
+        <Route element={<SecondHeader cartCount={cartCount} user={user} setUser={setUser} setShowLogin={setShowLogin}/>}>
+          <Route path="/restaurent" element={<Restaurent/>} />
+          <Route path="/city/chennai/:id" element={<RestaurentMenu setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems} />} />
+          <Route path="/city/chennai/:id/search" element={<SearchFood setCartCount={setCartCount} cartItems={cartItems} setCartItems={setCartItems} />} />
 
+          <Route path="/profile" element={<Profile user={user} setUser={setUser} setShowLogin={setShowLogin}/>}/>
+          <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
+          <Route path="/payment" element={<PaymentPage user={user} setCartItems={setCartItems} setCartCount={setCartCount} />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
         </Route>
-
-
-         <Route path="/profile" element={<Profile user={user}
-        setUser={setUser}
-        setShowLogin={setShowLogin}/>}/>
-
-
-        <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
-
-        <Route path="/payment" element={<PaymentPage />} />
-
-       <Route path="/order-success" element={<OrderSuccess />} />
-        
       </Routes>
       {/* {cartItems.length > 0 && ( */}
       

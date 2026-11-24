@@ -53,27 +53,27 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }) {
   }
 
   const fieldClass = (name) =>
-    `w-full border p-2 rounded ${error?.field === name ? "border-red-500 bg-red-50" : ""}`;
+    `w-full border border-line px-3.5 py-2.5 rounded-xl outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100 ${error?.field === name ? "border-paprika-600 bg-paprika-50" : ""}`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <input name="username" placeholder="Username" value={form.username} onChange={handleChange} className={fieldClass("username")} />
       <input name="email" placeholder="Email" value={form.email} onChange={handleChange} className={fieldClass("email")} />
-      <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} className="w-full border p-2 rounded" />
-      <input type="password" name="confirmpassword" placeholder="Confirm Password" value={form.confirmpassword} onChange={handleChange} className="w-full border p-2 rounded" />
+      <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} className="w-full border border-line px-3.5 py-2.5 rounded-xl outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100" />
+      <input type="password" name="confirmpassword" placeholder="Confirm Password" value={form.confirmpassword} onChange={handleChange} className="w-full border border-line px-3.5 py-2.5 rounded-xl outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100" />
 
       {error && (
-        <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-          <p className="font-semibold">⚠️ {error.message}</p>
+        <div role="alert" className="rounded-xl border border-paprika-200 bg-paprika-50 p-3 text-sm text-paprika-800">
+          <p className="font-semibold">{error.message}</p>
           {error.field === "email" && onSwitchToLogin && (
-            <button type="button" onClick={onSwitchToLogin} className="mt-1 font-medium text-blue-600 underline">
+            <button type="button" onClick={onSwitchToLogin} className="mt-1 font-semibold text-paprika-700 underline">
               Log in instead
             </button>
           )}
         </div>
       )}
 
-      <button disabled={loading} className="w-full bg-green-600 text-white py-2 rounded disabled:opacity-60">
+      <button disabled={loading} className="w-full bg-paprika-600 hover:bg-paprika-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-60">
         {loading ? "Creating account..." : "Sign Up"}
       </button>
     </form>

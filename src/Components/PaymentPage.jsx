@@ -1,247 +1,171 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FiCreditCard, FiSmartphone, FiHome, FiLock, FiAlertCircle } from 'react-icons/fi';
+import { saveOrder, ownerKey, newOrderId } from '../../Utils/orderHistory';
 
-const PaymentPage = () => {
+const METHODS = [
+  { id: 'card', label: 'Card', icon: FiCreditCard },
+  { id: 'upi', label: 'UPI', icon: FiSmartphone },
+  { id: 'netbanking', label: 'Net banking', icon: FiHome },
+];
+
+const inputClass = "w-full px-4 py-3 bg-white border border-line rounded-xl outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100";
+
+const PaymentPage = ({ user, setCartItems, setCartCount }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { cartItems = [], subtotal, deliveryCharge = 0, grandTotal = 0, calories = null } = location.state || {};
 
-  //  CRUCIAL FIX: Destructure the state values safely so the entire file can read them
-  const { cartItems, grandTotal } = location.state || { cartItems: [], grandTotal: 0 };
-  
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  
-  // Fake form state
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: '',
-    expiry: '',
-    cvv: '',
-    name: ''
-  });
+  const [cardDetails, setCardDetails] = useState({ cardNumber: '', expiry: '', cvv: '', name: '' });
 
-  const handleInputChange = (e) => {
-    setCardDetails({
-      ...cardDetails,
-      [e.target.name]: e.target.value
-    });
-  };
+  const handleInputChange = (e) => setCardDetails({ ...cardDetails, [e.target.name]: e.target.value });
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowSuccess(true);
-      
-      // After 2 seconds, redirect to order success page
-      setTimeout(() => {
-        // Pass order details to success page
-        navigate('/order-success', {
-          state: {
-            cartItems: cartItems,
-            grandTotal: grandTotal,
-            orderId: 'ORD_' + Math.random().toString(36).substr(2, 9).toUpperCase()
-          }
-        });
-      }, 2000);
-    }, 2000);
+
+    const order = {
+      id: newOrderId(),
+      owner: ownerKey(user),
+      createdAt: new Date().toISOString(),
+      items: cartItems.map(({ id, name, qty, price, image, restaurantId, restaurantName }) => ({
+        id, name, qty, price, image, restaurantId, restaurantName,
+      })),
+      restaurants: [...new Set(cartItems.map((i) => i.restaurantName).filter(Boolean))],
+      subtotal: subtotal ?? cartItems.reduce((t, i) => t + i.price * i.qty, 0),
+      deliveryCharge,
+      total: grandTotal,
+      paymentMethod,
+      calories,
+      status: 'Placed',
+    };
+
+    // Pretend to talk to a payment provider, then keep the order in history
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    let saved = true;
+    try {
+      await saveOrder(order);
+    } catch (err) {
+      console.warn("Couldn't save the order to history:", err);
+      saved = false;
+    }
+
+    setCartItems?.([]);
+    setCartCount?.(0);
+    navigate('/order-success', { replace: true, state: { order, saved } });
   };
 
-  if (showSuccess) {
+  if (cartItems.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 max-w-md mx-4 text-center animate-bounce">
-          <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-green-600 mb-2">Payment Successful!</h2>
-          <p className="text-gray-600">Redirecting to order summary...</p>
-          <div className="mt-4 w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto"></div>
-        </div>
+      <div className="max-w-xl mx-auto px-4 py-20 text-center">
+        <h1 className="font-display text-4xl text-ink">Nothing to pay for</h1>
+        <p className="mt-2 text-stone-warm">Your cart is empty. Add something from a restaurant first.</p>
+        <Link to="/restaurent" className="inline-block mt-6 bg-paprika-600 hover:bg-paprika-700 text-white font-semibold rounded-full px-6 py-3">
+          Browse restaurants
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-8">
-          
-          {/* Left Column - Order Summary */}
-          <div className="bg-white rounded-2xl shadow-xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              🛒 Order Summary
-            </h2>
-            
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {cartItems.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center border-b pb-3">
-                  <div>
-                    <p className="font-medium text-gray-800">{item.name}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.qty}</p>
-                  </div>
-                  <p className="font-semibold text-gray-800">₹{item.price * item.qty}</p>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t-2 border-gray-200">
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total Amount</span>
-                <span className="text-green-600">₹{grandTotal}</span>
-              </div>
-            </div>
+    <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-paprika-700">Payment</p>
+      <h1 className="mt-1 font-display text-3xl md:text-5xl text-ink">Pay ₹{grandTotal}</h1>
+
+      <div className="mt-8 grid md:grid-cols-5 gap-6 lg:gap-8">
+        {/* Payment form */}
+        <section className="md:col-span-3 bg-white rounded-3xl border border-line p-5 md:p-7">
+          <p className="flex items-start gap-2 text-sm bg-paprika-50 text-paprika-800 rounded-2xl px-4 py-3">
+            <FiAlertCircle className="mt-0.5 shrink-0" />
+            This is a demo checkout. Don't enter real card or bank details; any text works.
+          </p>
+
+          <div className="mt-6 grid grid-cols-3 gap-2 md:gap-3">
+            {METHODS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setPaymentMethod(id)}
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-3 rounded-2xl border text-sm font-semibold transition ${
+                  paymentMethod === id ? 'border-paprika-600 bg-paprika-50 text-paprika-700' : 'border-line text-ink hover:border-stone-warm'
+                }`}
+              >
+                <Icon size={18} /> {label}
+              </button>
+            ))}
           </div>
 
-          {/* Right Column - Payment Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              💳 Payment Details
-            </h2>
-            
-            {/* Payment Method Selection */}
-            <div className="mb-6">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Select Payment Method</p>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={() => setPaymentMethod('card')}
-                  className={`py-2 px-4 rounded-lg border-2 transition-all ${
-                    paymentMethod === 'card' 
-                      ? 'border-green-500 bg-green-50 text-green-700' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  💳 Card
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('upi')}
-                  className={`py-2 px-4 rounded-lg border-2 transition-all ${
-                    paymentMethod === 'upi' 
-                      ? 'border-green-500 bg-green-50 text-green-700' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  📱 UPI
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('netbanking')}
-                  className={`py-2 px-4 rounded-lg border-2 transition-all ${
-                    paymentMethod === 'netbanking' 
-                      ? 'border-green-500 bg-green-50 text-green-700' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  🏦 NetBanking
-                </button>
-              </div>
-            </div>
-
-            {/* Card Form (shown only when card is selected) */}
+          <div className="mt-6 space-y-4">
             {paymentMethod === 'card' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Cardholder Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={cardDetails.name}
-                    onChange={handleInputChange}
-                    placeholder="John Doe"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    value={cardDetails.cardNumber}
-                    onChange={handleInputChange}
-                    placeholder="1234 5678 9012 3456"
-                    maxLength="19"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                
+              <>
+                <label className="block">
+                  <span className="block text-sm font-semibold text-ink mb-1.5">Name on card</span>
+                  <input name="name" value={cardDetails.name} onChange={handleInputChange} placeholder="Demo User" className={inputClass} />
+                </label>
+                <label className="block">
+                  <span className="block text-sm font-semibold text-ink mb-1.5">Card number</span>
+                  <input name="cardNumber" value={cardDetails.cardNumber} onChange={handleInputChange} placeholder="0000 0000 0000 0000" maxLength="19" className={inputClass} />
+                </label>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      name="expiry"
-                      value={cardDetails.expiry}
-                      onChange={handleInputChange}
-                      placeholder="MM/YY"
-                      maxLength="5"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="password"
-                      name="cvv"
-                      value={cardDetails.cvv}
-                      onChange={handleInputChange}
-                      placeholder="123"
-                      maxLength="4"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* UPI Form */}
-            {paymentMethod === 'upi' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    UPI ID
+                  <label className="block">
+                    <span className="block text-sm font-semibold text-ink mb-1.5">Expiry</span>
+                    <input name="expiry" value={cardDetails.expiry} onChange={handleInputChange} placeholder="MM/YY" maxLength="5" className={inputClass} />
                   </label>
-                  <input
-                    type="text"
-                    placeholder="user@okhdfcbank"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
+                  <label className="block">
+                    <span className="block text-sm font-semibold text-ink mb-1.5">CVV</span>
+                    <input type="password" name="cvv" value={cardDetails.cvv} onChange={handleInputChange} placeholder="•••" maxLength="4" className={inputClass} />
+                  </label>
                 </div>
-              </div>
+              </>
             )}
 
-            {/* NetBanking View */}
+            {paymentMethod === 'upi' && (
+              <label className="block">
+                <span className="block text-sm font-semibold text-ink mb-1.5">UPI ID</span>
+                <input placeholder="demo@upi" className={inputClass} />
+              </label>
+            )}
+
             {paymentMethod === 'netbanking' && (
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Select Bank</label>
-                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+              <label className="block">
+                <span className="block text-sm font-semibold text-ink mb-1.5">Bank</span>
+                <select className={inputClass}>
                   <option>SBI</option>
                   <option>HDFC Bank</option>
                   <option>ICICI Bank</option>
                   <option>Axis Bank</option>
                 </select>
-              </div>
+              </label>
             )}
-
-            {/* Pay Button */}
-            <button
-              onClick={handlePayment}
-              disabled={isProcessing}
-              className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md transform active:scale-95 disabled:bg-gray-400 disabled:scale-100"
-            >
-              {isProcessing ? 'Processing Payment...' : `Pay ₹${grandTotal}`}
-            </button>
-
           </div>
-        </div>
+
+          <button
+            onClick={handlePayment}
+            disabled={isProcessing}
+            className="w-full mt-7 flex items-center justify-center gap-2 bg-paprika-600 hover:bg-paprika-700 disabled:bg-stone-warm text-white font-semibold py-4 rounded-2xl"
+          >
+            <FiLock /> {isProcessing ? 'Placing your order…' : `Pay ₹${grandTotal}`}
+          </button>
+        </section>
+
+        {/* Order summary */}
+        <aside className="md:col-span-2">
+          <div className="grain bg-cream rounded-3xl border border-line p-5 md:p-6 md:sticky md:top-24">
+            <h2 className="font-bold text-ink">Order summary</h2>
+            <ul className="mt-4 space-y-3 max-h-80 overflow-y-auto pr-1">
+              {cartItems.map((item) => (
+                <li key={item.id} className="flex justify-between gap-3 text-sm">
+                  <span className="text-ink"><span className="font-semibold">{item.qty} ×</span> {item.name}</span>
+                  <span className="font-semibold shrink-0">₹{item.price * item.qty}</span>
+                </li>
+              ))}
+            </ul>
+            <dl className="mt-4 pt-4 border-t border-line space-y-1.5 text-sm">
+              <div className="flex justify-between"><dt className="text-stone-warm">Delivery</dt><dd>{deliveryCharge ? `₹${deliveryCharge}` : "Free"}</dd></div>
+              <div className="flex justify-between text-base"><dt className="font-bold">Total</dt><dd className="font-extrabold">₹{grandTotal}</dd></div>
+            </dl>
+          </div>
+        </aside>
       </div>
     </div>
   );

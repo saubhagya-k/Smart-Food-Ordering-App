@@ -42,11 +42,11 @@ export default function LoginForm({ onSuccess, initialEmail = "", notice = "" })
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {notice && (
-        <p className="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-700">{notice}</p>
+        <p className="rounded-xl border border-basil-100 bg-basil-50 p-3 text-sm text-basil-700">{notice}</p>
       )}
 
       <input
-        className="w-full border p-2 rounded"
+        className="w-full border border-line px-3.5 py-2.5 rounded-xl outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -54,20 +54,20 @@ export default function LoginForm({ onSuccess, initialEmail = "", notice = "" })
 
       <input
         type="password"
-        className="w-full border p-2 rounded"
+        className="w-full border border-line px-3.5 py-2.5 rounded-xl outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
 
       {error && (
-        <p role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          ⚠️ {error}
+        <p role="alert" className="rounded-xl border border-paprika-200 bg-paprika-50 p-3 text-sm font-semibold text-paprika-800">
+          {error}
         </p>
       )}
 
-      <button disabled={loading} className="w-full bg-amber-500 text-white py-2 rounded disabled:opacity-60">
-        {loading ? "Logging in..." : "Login"}
+      <button disabled={loading} className="w-full bg-paprika-600 hover:bg-paprika-700 text-white font-semibold py-2.5 rounded-xl disabled:opacity-60">
+        {loading ? "Logging in..." : "Log in"}
       </button>
     </form>
   );

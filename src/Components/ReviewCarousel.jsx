@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
+import { FiStar } from 'react-icons/fi';
 import { API_URL } from './../../Utils/api';
 
 const ReviewCarousel = () => {
@@ -61,38 +62,38 @@ const ReviewCarousel = () => {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500">Loading reviews...</div>
+        <div className="text-stone-warm">Loading reviews...</div>
       </div>
     );
   }
 
   if (reviews.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-xl">
-        <div className="text-4xl mb-3">⭐</div>
-        <h3 className="text-lg font-semibold text-gray-700">No reviews yet</h3>
-        <p className="text-gray-500 text-sm mt-1">Be the first to share your experience!</p>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center py-12 bg-cream border border-line rounded-3xl">
+          <h3 className="font-display text-2xl text-ink">No reviews yet</h3>
+          <p className="text-stone-warm text-sm mt-1">Order something and be the first to share how it was.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="py-12 bg-gradient-to-r from-gray-50 to-gray-100">
+    <section className="py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">What Our Customers Say</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-paprika-700">Reviews</p>
+          <h2 className="mt-1 font-display text-3xl md:text-4xl text-ink">What people are saying</h2>
           <div className="flex items-center justify-center gap-2 mt-2">
             <div className="flex">
               {[1,2,3,4,5].map(star => (
-                <span key={star} className="text-2xl">
-                  {star <= Math.round(averageRating) ? '⭐' : '☆'}
-                </span>
+                <FiStar key={star} size={18} className={star <= Math.round(averageRating) ? "text-paprika-500 fill-paprika-500" : "text-line"} />
               ))}
             </div>
-            <span className="text-gray-600">{averageRating.toFixed(1)} out of 5</span>
-            <span className="text-gray-400">•</span>
-            <span className="text-gray-500">{reviews.length} reviews</span>
+            <span className="text-stone-warm">{averageRating.toFixed(1)} out of 5</span>
+            <span className="text-line">•</span>
+            <span className="text-stone-warm">{reviews.length} reviews</span>
           </div>
         </div>
 
@@ -100,27 +101,25 @@ const ReviewCarousel = () => {
         <Slider {...settings}>
           {reviews.map((review) => (
             <div key={review._id} className="px-2">
-              <div className="bg-white rounded-xl shadow-lg p-6 h-64 flex flex-col justify-between hover:shadow-xl transition-shadow">
+              <div className="bg-white rounded-2xl border border-line p-6 h-64 flex flex-col justify-between">
                 {/* Stars */}
                 <div>
                   <div className="flex mb-3">
                     {[1,2,3,4,5].map(star => (
-                      <span key={star} className="text-xl">
-                        {star <= review.rating ? '⭐' : '☆'}
-                      </span>
+                      <FiStar key={star} size={16} className={star <= review.rating ? "text-paprika-500 fill-paprika-500" : "text-line"} />
                     ))}
                   </div>
                   
                   {/* Review Text */}
-                  <p className="text-gray-700 text-sm leading-relaxed line-clamp-4">
+                  <p className="text-ink text-sm leading-relaxed line-clamp-4">
                     {review.reviewText || "No comment provided"}
                   </p>
                 </div>
                 
                 {/* User Info */}
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <p className="font-semibold text-gray-900">{review.username}</p>
-                  <p className="text-xs text-gray-400">
+                <div className="mt-4 pt-3 border-t border-line">
+                  <p className="font-semibold text-ink">{review.username}</p>
+                  <p className="text-xs text-stone-warm">
                     {new Date(review.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -129,7 +128,7 @@ const ReviewCarousel = () => {
           ))}
         </Slider>
       </div>
-    </div>
+    </section>
   );
 };
 

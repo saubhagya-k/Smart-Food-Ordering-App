@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { API_URL } from './../../Utils/api'; 
+import { API_URL } from './../../Utils/api';
+import { FiStar } from 'react-icons/fi';
 
 const Review = () => {
   const [rating, setRating] = useState(0)
@@ -51,20 +52,19 @@ const Review = () => {
 
   if (submitted) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-        <div className="text-green-600 text-lg mb-2">✓</div>
-        <div className="text-green-800 font-semibold">Thank you for your review!</div>
-        <div className="text-green-600 text-sm mt-1">Your feedback helps us improve</div>
+      <div className="bg-basil-50 border border-basil-100 rounded-2xl p-4 text-center">
+        <div className="text-basil-700 font-bold">Thanks for the review!</div>
+        <div className="text-basil-700 text-sm mt-1">It now shows on the home page.</div>
       </div>
     )
   }
 
   return (
-    <div className="border-t pt-6 mt-6">
-      <h3 className="text-lg font-semibold mb-4">Rate Your Experience</h3>
+    <div className="border-t border-line pt-6">
+      <h3 className="font-display text-2xl text-ink mb-3">How was it?</h3>
       
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-red-700 text-sm">
+        <div className="bg-paprika-50 border border-paprika-200 rounded-xl p-3 mb-4 text-paprika-800 text-sm">
           {error}
         </div>
       )}
@@ -75,10 +75,11 @@ const Review = () => {
           <button
             key={star}
             onClick={() => setRating(star)}
-            className="text-3xl focus:outline-none transition-transform hover:scale-110"
+            aria-label={`${star} star${star > 1 ? "s" : ""}`}
+            className="p-1 transition-transform hover:scale-110"
             disabled={isLoading}
           >
-            {star <= rating ? '⭐' : '☆'}
+            <FiStar size={28} className={star <= rating ? "text-paprika-500 fill-paprika-500" : "text-line"} />
           </button>
         ))}
       </div>
@@ -88,7 +89,7 @@ const Review = () => {
         value={reviewText}
         onChange={(e) => setReviewText(e.target.value)}
         placeholder="Share your experience (optional)..."
-        className="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        className="w-full p-3 border border-line rounded-xl mb-4 outline-none focus:border-paprika-500 focus:ring-2 focus:ring-paprika-100"
         rows="4"
         disabled={isLoading}
       />
@@ -97,10 +98,8 @@ const Review = () => {
       <button
         onClick={handleSubmit}
         disabled={rating === 0 || isLoading}
-        className={`w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all ${
-          rating === 0 || isLoading
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:from-green-700 hover:to-green-800 hover:scale-[1.02]'
+        className={`w-full bg-ink text-white px-6 py-3 rounded-xl font-semibold transition ${
+          rating === 0 || isLoading ? 'opacity-40 cursor-not-allowed' : 'hover:bg-black'
         }`}
       >
         {isLoading ? 'Submitting...' : 'Submit Review'}

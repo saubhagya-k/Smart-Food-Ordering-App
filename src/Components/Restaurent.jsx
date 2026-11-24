@@ -10,7 +10,7 @@ import { API_URL } from './../../Utils/api';
 const PAGES = mockPagination.filter((p) => p?.restaurants?.length);
 
 export default function Restaurent() {
-  const [RestData, setRestData] = useState([]);        // live restaurants from Swiggy
+  const [RestData, setRestData] = useState([]);        // live restaurants from the API
   const [RestDataTop, setRestDataTop] = useState([]);  // "What's on your mind?" row
   const [liveStatus, setLiveStatus] = useState("loading"); // "loading" | "done" | "failed"
   const [pagesLoaded, setPagesLoaded] = useState(1);   // how many saved pages are shown
@@ -18,7 +18,7 @@ export default function Restaurent() {
 
   const hasMore = pagesLoaded < PAGES.length;
 
-  // Live list from Swiggy (through our backend). If Swiggy refuses, we still
+  // Live list (through our backend). If the source refuses, we still
   // show the saved pages instead of "loading" forever.
   useEffect(() => {
     async function fetchData() {
@@ -76,9 +76,10 @@ export default function Restaurent() {
 
   if (liveStatus === "loading") {
     return (
-      <h1 className="h-full text-2xl md:text-5xl flex justify-center items-center mt-32 md:mt-60 px-4 text-center">
-        Data is Loading....
-      </h1>
+      <div className="max-w-7xl mx-auto px-4 py-24 text-center">
+        <div className="mx-auto w-10 h-10 rounded-full border-4 border-paprika-100 border-t-paprika-600 animate-spin" />
+        <p className="mt-4 text-stone-warm">Finding restaurants near you…</p>
+      </div>
     );
   }
 
@@ -92,32 +93,36 @@ export default function Restaurent() {
     ).values()
   );
 
-  // Use the saved food categories if Swiggy didn't send any
+  // Use the saved food categories if the API didn't send any
   const topCards = RestDataTop.length ? RestDataTop : imageGridCards;
 
   return (
     <>
       {/* Top Banner Row */}
-      <h1 className="max-w-7xl mx-auto px-4 font-bold text-xl md:text-2xl mt-5">
-        What's on your mind?
-      </h1>
+      <section className="grain bg-cream border-b border-line">
+      <div className="max-w-7xl mx-auto px-4 pt-8 pb-2">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-paprika-700">Browse by dish</p>
+        <h1 className="mt-1 font-display text-3xl md:text-4xl text-ink">What's on your mind?</h1>
+      </div>
 
-      <div className="flex overflow-x-auto gap-4 md:gap-6 max-w-7xl mx-auto px-4 scrollbar-hide">
+      <div className="flex overflow-x-auto gap-4 md:gap-6 max-w-7xl mx-auto px-4 pb-6 scrollbar-hide">
         {topCards.map((restInfoTop) => (
           <div key={restInfoTop.id} className="shrink-0">
             <RestCardTop restInfoTop={restInfoTop} />
           </div>
         ))}
       </div>
+      </section>
 
       {/* Restaurant Grid */}
-      <h1 className="max-w-7xl mx-auto px-4 font-bold text-xl md:text-2xl mt-10 md:mt-20">
-        Restaurants with online food delivery in Patna
-      </h1>
+      <div className="max-w-7xl mx-auto px-4 mt-10 md:mt-12 mb-6">
+        <h2 className="font-display text-3xl md:text-4xl text-ink">Restaurants in Patna</h2>
+        <p className="mt-1 text-stone-warm">Delivery from kitchens near you</p>
+      </div>
 
       {/* 1 column on phones, more as the screen widens */}
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
           {allRestaurants.map(restInfo => (
             <RestCard key={restInfo.info.id} restInfo={restInfo} />
           ))}
@@ -125,7 +130,7 @@ export default function Restaurent() {
       </div>
 
       {/* Infinite Scroll Anchor Trigger */}
-      <div ref={loaderRef} className="h-20 flex justify-center items-center mt-10 text-gray-500">
+      <div ref={loaderRef} className="h-20 flex justify-center items-center mt-10 text-stone-warm">
         {hasMore ? "Loading more restaurants..." : `That's all ${allRestaurants.length} restaurants`}
       </div>
     </>
